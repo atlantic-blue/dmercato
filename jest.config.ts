@@ -3,11 +3,19 @@ import type { Config } from 'jest';
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/packages'],
+  roots: ['<rootDir>/packages', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
   moduleNameMapper: {
     '^@dmercato/types$': '<rootDir>/packages/shared/types/src',
     '^@dmercato/db$': '<rootDir>/packages/shared/db/src',
+    '^@dmercato/renderer$': '<rootDir>/packages/lambdas/renderer/src',
+  },
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      diagnostics: {
+        ignoreDiagnostics: [2339, 7016],
+      },
+    }],
   },
   collectCoverageFrom: [
     'packages/**/src/**/*.ts',
