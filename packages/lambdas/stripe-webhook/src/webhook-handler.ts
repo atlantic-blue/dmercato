@@ -61,8 +61,8 @@ function reassembleItems(metadata: SessionMetadata): Array<{ productId: string; 
     }
   }
   return entries.map((entry) => {
-    const [productId, quantity, price] = entry.split(':');
-    return { productId, quantity: parseInt(quantity, 10), price: parseInt(price, 10) };
+    const parts = entry.split(':');
+    return { productId: parts[0] ?? '', quantity: parseInt(parts[1] ?? '0', 10), price: parseInt(parts[2] ?? '0', 10) };
   });
 }
 
