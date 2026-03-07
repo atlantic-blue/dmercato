@@ -115,17 +115,32 @@ function validateFulfilment(tenant: Tenant, method: string): string | null {
   return null;
 }
 
-function buildItemsMetadata(products: Array<Product & { quantity: number }>): string {
-  return JSON.stringify(products.map((p) => ({
-    id: p.id,
-    qty: p.quantity,
-    price: p.price,
-  })));
+function buildItemsMetadataChunks(products: Array<Product & { quantity: number }>): Record<string, string> {
+  const entries = products.map((p) => `${p.id}:${p.quantity}:${p.price}`);
+  const chunks: Record<string, string> = {};
+  let current = '';
+  let chunkIndex = 0;
+
+  for (const entry of entries) {
+    const separator = current.length > 0 ? '|' : '';
+    if (current.length + separator.length + entry.length > 500) {
+      chunks[`items_${chunkIndex}`] = current;
+      chunkIndex++;
+      current = entry;
+    } else {
+      current += separator + entry;
+    }
+  }
+  if (current.length > 0) {
+    chunks[`items_${chunkIndex}`] = current;
+  }
+  chunks['items_chunks'] = String(chunkIndex + 1);
+  return chunks;
 }
 
 function buildMetadata(
   body: CheckoutRequestBody,
-  itemsJson: string,
+  itemsChunks: Record<string, string>,
   amounts: { subtotal: number; deliveryFee: number; total: number; platformFee: number; currency: string },
 ): Record<string, string> {
   return {
@@ -133,7 +148,7 @@ function buildMetadata(
     customerName: body.customerName,
     customerEmail: body.customerEmail,
     customerPhone: body.customerPhone ?? '',
-    items: itemsJson,
+    ...itemsChunks,
     subtotal: String(amounts.subtotal),
     deliveryFee: String(amounts.deliveryFee),
     total: String(amounts.total),
@@ -232,8 +247,8 @@ async function callStripeCheckout(
 
   const baseUrl = process.env.BASE_URL ?? 'https://dmercato.com';
 
-  const itemsJson = buildItemsMetadata(products);
-  const metadata = buildMetadata(body, itemsJson, { subtotal, deliveryFee, total, platformFee, currency });
+  const itemsChunks = buildItemsMetadataChunks(products);
+  const metadata = buildMetadata(body, itemsChunks, { subtotal, deliveryFee, total, platformFee, currency });
   const lineItems = buildLineItems(products, currency, deliveryFee);
 
   try {
