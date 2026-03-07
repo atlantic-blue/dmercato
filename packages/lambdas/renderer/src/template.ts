@@ -283,6 +283,50 @@ function renderCartScript(): string {
         updateCartDisplay();
         toggleCart();
       });
+      var checkoutForm = document.getElementById('checkout-form');
+      if(checkoutForm){
+        checkoutForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          var cart = getCart();
+          if(cart.length === 0){ alert('Your cart is empty'); return; }
+          var btn = checkoutForm.querySelector('.checkout-button');
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          var payload = {
+            vendorSlug: window.VENDOR_SLUG,
+            items: cart.map(function(item){ return { productId: item.id, quantity: item.qty }; }),
+            customerName: document.getElementById('checkout-name').value,
+            customerEmail: document.getElementById('checkout-email').value,
+            customerPhone: document.getElementById('checkout-phone').value || undefined,
+            fulfilmentMethod: document.getElementById('checkout-fulfilment').value,
+            requestedDate: document.getElementById('checkout-date').value,
+            requestedTime: document.getElementById('checkout-time').value,
+            deliveryNotes: document.getElementById('checkout-notes').value || undefined
+          };
+          fetch('/api/checkout/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(function(res){ return res.json(); })
+          .then(function(data){
+            if(data.data && data.data.checkoutUrl){
+              localStorage.removeItem(CART_KEY);
+              window.location.href = data.data.checkoutUrl;
+            } else {
+              var msg = (data.error && data.error.message) || 'Checkout failed. Please try again.';
+              alert(msg);
+              btn.disabled = false;
+              btn.textContent = 'Pay Now';
+            }
+          })
+          .catch(function(){
+            alert('Something went wrong. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Pay Now';
+          });
+        });
+      }
       updateCartDisplay();
     })();
   </script>`;
@@ -432,6 +476,7 @@ export function renderHtmlTemplate(input: RenderHtmlTemplateInput): string {
   </footer>
   ${renderMobileBottomNav()}
   ${renderCartDrawer(tenant)}
+  <script>window.VENDOR_SLUG='${escapeHtml(tenant.vendorSlug)}';</script>
   ${renderCartScript()}
 </body>
 </html>`;
