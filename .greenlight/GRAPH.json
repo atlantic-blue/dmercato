@@ -1,338 +1,198 @@
 {
-  "version": "1.0.0",
+  "version": "3.1.0",
   "project": "dmercato",
-  "total_slices": 22,
+  "total_slices": 10,
   "slices": [
     {
       "id": "S-1",
       "name": "Terraform foundation: DynamoDB, S3, IAM",
-      "description": "Provision the core AWS infrastructure: 5 DynamoDB tables (tenants, quoteRequests, orders, sessions, magicLinks), 3 S3 buckets (assets, admin, sitemaps), IAM roles for each Lambda with least-privilege policies, and SSM parameter store entries for config.",
+      "description": "Provision core AWS infrastructure. Already complete.",
       "milestone": "V1",
       "deps": [],
       "enables": [],
-      "contracts": [
-        "TerraformDynamoDBTables",
-        "TerraformS3Buckets",
-        "TerraformLambdaRoles"
-      ],
-      "parallel": ["S-2"],
+      "contracts": [],
+      "parallel": [],
       "estimated_tests": 0,
       "boundaries": ["Terraform -> AWS"]
     },
     {
       "id": "S-2",
-      "name": "Shared types package",
-      "description": "Define all TypeScript interfaces, type guards, enums, and validation functions used across the monorepo: Tenant, Product, MarketDate, QuoteRequest, Session, MagicLink, ApiResponse envelope, EventType, and all input validators.",
+      "name": "A visitor can see a vendor page with product catalogue",
+      "description": "Tenant types (including products, operational schedule, delivery settings), DynamoDB getTenantBySlug, Renderer Lambda (SSR HTML with inline CSS, product catalogue with prices, add-to-cart UI, operational hours, delivery/takeout info, SEO, JSON-LD), Terraform for Lambda + API Gateway + CloudFront, seed vendor data with products, deploy to staging, verify page loads with products visible.",
       "milestone": "V1",
-      "deps": [],
-      "enables": ["User can view vendor page", "User can submit quote request"],
+      "deps": ["S-1"],
+      "enables": ["Visitor can browse vendor products"],
       "contracts": [
         "Tenant",
-        "QuoteRequest",
-        "Session",
-        "MagicLink",
-        "ApiResponse",
-        "InputValidation"
-      ],
-      "parallel": ["S-1"],
-      "estimated_tests": 12,
-      "boundaries": ["Shared types -> all consumers"]
-    },
-    {
-      "id": "S-3",
-      "name": "DB client + tenant helpers",
-      "description": "Implement the DynamoDB client wrapper and tenant data access functions: getTenantBySlug, getTenantByEmail, updateTenant, getTenantsByCity, scanAllTenants. Uses DocumentClient with typed inputs/outputs.",
-      "milestone": "V1",
-      "deps": ["S-2"],
-      "enables": ["User can view vendor page"],
-      "contracts": [
         "GetTenantBySlug",
-        "GetTenantByEmail",
-        "UpdateTenant",
-        "GetTenantsByCity",
-        "ScanAllTenants"
-      ],
-      "parallel": [],
-      "estimated_tests": 10,
-      "boundaries": ["DB package -> DynamoDB"]
-    },
-    {
-      "id": "S-4",
-      "name": "Renderer Lambda: SSR vendor page",
-      "description": "Server-side render vendor pages at /{slug}. Reads tenant from DynamoDB, generates complete HTML with inline CSS, SEO metadata (title, description, OG tags, canonical), JSON-LD (LocalBusiness + Product schemas), responsive layout with all sections (nav, hero, story, products, calendar, quote form, more-in-city, footer), and mobile bottom nav. Includes GET /api/vendors/{slug} JSON endpoint.",
-      "milestone": "V1",
-      "deps": ["S-2", "S-3"],
-      "enables": ["User can view vendor page"],
-      "contracts": [
         "RenderVendorPage",
         "GenerateSeoMetadata",
         "RenderHtmlTemplate",
-        "GetVendorHandler"
-      ],
-      "parallel": ["S-5"],
-      "estimated_tests": 12,
-      "boundaries": ["CloudFront -> Renderer Lambda", "Renderer -> DynamoDB", "API Gateway -> API Lambda"]
-    },
-    {
-      "id": "S-5",
-      "name": "Quote request handler + DB helpers",
-      "description": "Handle quote request submissions: validate input, verify vendor exists, create DynamoDB record, send email notification to vendor via SES. Includes the quoteRequests DB functions (create, query by vendor, mark as read) and the API Lambda internal router scaffold.",
-      "milestone": "V1",
-      "deps": ["S-2", "S-3"],
-      "enables": ["User can submit quote request"],
-      "contracts": [
-        "SubmitQuoteRequestHandler",
-        "CreateQuoteRequest",
-        "GetQuoteRequestsByVendor",
-        "MarkQuoteRequestRead",
-        "SendQuoteNotificationEmail",
-        "ApiLambdaRouter"
-      ],
-      "parallel": ["S-4"],
-      "estimated_tests": 12,
-      "boundaries": ["API Gateway -> API Lambda", "API Lambda -> DynamoDB", "API Lambda -> SES"]
-    },
-    {
-      "id": "S-6",
-      "name": "Sitemap Lambda",
-      "description": "Generate XML sitemaps on a daily schedule. Scans all tenants, produces sitemap-index.xml, sitemap-vendors.xml, and sitemap-cities.xml, writes to sitemaps S3 bucket.",
-      "milestone": "V1",
-      "deps": ["S-2", "S-3"],
-      "enables": ["User can view vendor page"],
-      "contracts": [
-        "GenerateSitemaps"
-      ],
-      "parallel": ["S-4", "S-5"],
-      "estimated_tests": 5,
-      "boundaries": ["EventBridge -> Sitemap Lambda", "Sitemap Lambda -> DynamoDB", "Sitemap Lambda -> S3"]
-    },
-    {
-      "id": "S-7",
-      "name": "Cache invalidator Lambda",
-      "description": "Invalidate CloudFront cached paths when vendor data changes. Receives a list of paths, creates a CloudFront invalidation batch. Invoked programmatically by the API Lambda after writes.",
-      "milestone": "V1",
-      "deps": [],
-      "enables": [],
-      "contracts": [
-        "InvalidateCloudFrontPaths"
-      ],
-      "parallel": ["S-1", "S-2"],
-      "estimated_tests": 4,
-      "boundaries": ["API Lambda -> Cache Invalidator Lambda", "Cache Invalidator -> CloudFront"]
-    },
-    {
-      "id": "S-8",
-      "name": "Terraform compute: API Gateway + CloudFront + Lambda deploy",
-      "description": "Provision the compute and networking layer: API Gateway HTTP API with all route definitions and CORS, CloudFront distribution with 5 origins and cache behaviours, Lambda function deployments for renderer, API, sitemap, and cache invalidator, EventBridge schedule for sitemap.",
-      "milestone": "V1",
-      "deps": ["S-1"],
-      "enables": [],
-      "contracts": [
         "TerraformApiGateway",
-        "TerraformCloudFront"
-      ],
-      "parallel": [],
-      "estimated_tests": 0,
-      "boundaries": ["Terraform -> AWS"]
-    },
-    {
-      "id": "S-9",
-      "name": "Seed data script: Oscar (Sweet Sin)",
-      "description": "Create an idempotent seed script that inserts Oscar's vendor data (Sweet Sin, Adelaide, AU) into the tenants table. Includes products, market dates, photos, categories, and social links for a realistic page render.",
-      "milestone": "V1",
-      "deps": ["S-1", "S-2"],
-      "enables": ["User can view vendor page"],
-      "contracts": [
+        "TerraformCloudFront",
         "SeedTenantData"
       ],
       "parallel": [],
-      "estimated_tests": 2,
-      "boundaries": ["Script -> DynamoDB"]
+      "estimated_tests": 20,
+      "boundaries": ["Browser -> CloudFront -> Renderer Lambda -> DynamoDB"]
     },
     {
-      "id": "S-10",
-      "name": "Staging deploy + smoke test",
-      "description": "Deploy all V1 components to staging environment. Run smoke tests verifying: vendor page renders at /{slug}, quote form submission works, email notification is delivered, sitemap is generated, 404 for unknown slugs, CloudFront caching works.",
+      "id": "S-3",
+      "name": "A visitor can purchase products and receive a confirmation",
+      "description": "Cart (client-side), checkout flow (takeout vs delivery with vendor-set fee, delivery date/time from vendor's operational schedule), Stripe Connect payment, order record in DynamoDB, confirmation emails to both customer (receipt) and vendor (order notification with items, delivery notes, time). API handlers: create Stripe checkout session, Stripe webhook for payment confirmation. Terraform for Stripe webhook Lambda. Seed vendor Stripe account ID. Deploy, verify full purchase flow.",
       "milestone": "V1",
-      "deps": ["S-4", "S-5", "S-6", "S-7", "S-8", "S-9"],
-      "enables": ["User can view vendor page", "User can submit quote request"],
-      "contracts": [],
-      "parallel": [],
-      "estimated_tests": 8,
-      "boundaries": ["End-to-end"]
-    },
-    {
-      "id": "S-11",
-      "name": "Auth Lambda: magic link + session + logout",
-      "description": "Handle magic link authentication flow. POST /api/auth/request: look up tenant by email, generate token, store in magicLinks table, send email via SES. GET /api/auth/verify: validate token, create session, set cookie, redirect. POST /api/auth/logout: delete session, clear cookie. Includes rate limiting (3/hr/email).",
-      "milestone": "V2",
-      "deps": ["S-2", "S-3", "S-12"],
-      "enables": ["Vendor can log in"],
-      "contracts": [
-        "RequestMagicLinkHandler",
-        "VerifyMagicLinkHandler",
-        "SendMagicLinkEmail",
-        "LogoutHandler"
-      ],
-      "parallel": [],
-      "estimated_tests": 12,
-      "boundaries": ["API Gateway -> Auth Lambda", "Auth Lambda -> DynamoDB", "Auth Lambda -> SES"]
-    },
-    {
-      "id": "S-12",
-      "name": "Session + magic link DB helpers",
-      "description": "Implement DynamoDB data access functions for sessions and magic links: createSession, getSession, deleteSession, createMagicLink, getAndDeleteMagicLink. All functions handle TTL-based expiry.",
-      "milestone": "V2",
       "deps": ["S-2"],
-      "enables": ["Vendor can log in"],
+      "enables": ["Visitor can buy products"],
       "contracts": [
+        "Order",
+        "ApiResponse",
+        "InputValidation",
+        "CreateCheckoutSession",
+        "StripeWebhookHandler",
+        "CreateOrder",
+        "SendOrderConfirmationEmail",
+        "SendVendorOrderNotificationEmail"
+      ],
+      "parallel": ["S-4"],
+      "estimated_tests": 24,
+      "boundaries": ["Browser -> API Gateway -> API Lambda -> Stripe + DynamoDB + SES"]
+    },
+    {
+      "id": "S-4",
+      "name": "A visitor can submit a quote request",
+      "description": "QuoteRequest types, createQuoteRequest DB helper, API Lambda quote submission handler, SES email notification to vendor, rate limiting. Deploy, verify quote submission from vendor page.",
+      "milestone": "V1",
+      "deps": ["S-2"],
+      "enables": ["Visitor can request custom event catering"],
+      "contracts": [
+        "QuoteRequest",
+        "CreateQuoteRequest",
+        "SubmitQuoteRequestHandler",
+        "SendQuoteNotificationEmail",
+        "ApiLambdaRouter"
+      ],
+      "parallel": ["S-3"],
+      "estimated_tests": 14,
+      "boundaries": ["Browser -> API Gateway -> API Lambda -> DynamoDB + SES"]
+    },
+    {
+      "id": "S-5",
+      "name": "A vendor can log in and see their dashboard",
+      "description": "Session and MagicLink types, DB helpers, Auth Lambda (request/verify/logout), Admin SPA scaffold (React + Vite + routing + login + protected routes), deploy admin SPA to S3 + CloudFront /admin/*, verify full magic link login flow.",
+      "milestone": "V2",
+      "deps": ["S-3", "S-4"],
+      "enables": ["Vendor can access admin"],
+      "contracts": [
+        "Session",
+        "MagicLink",
+        "GetTenantByEmail",
         "CreateSession",
         "GetSession",
         "DeleteSession",
         "CreateMagicLink",
-        "GetAndDeleteMagicLink"
-      ],
-      "parallel": [],
-      "estimated_tests": 10,
-      "boundaries": ["DB package -> DynamoDB"]
-    },
-    {
-      "id": "S-13",
-      "name": "withAuth middleware",
-      "description": "Implement the withAuth higher-order function that wraps API Lambda handlers. Extracts dmercato_session cookie, validates session via GetSession, attaches vendorSlug to event, returns 401 if invalid. Does not perform authorization (slug matching is handler responsibility).",
-      "milestone": "V2",
-      "deps": ["S-2", "S-12"],
-      "enables": ["Vendor can manage page", "Vendor can view quote requests"],
-      "contracts": [
-        "WithAuth"
-      ],
-      "parallel": [],
-      "estimated_tests": 6,
-      "boundaries": ["API Lambda handler -> withAuth middleware"]
-    },
-    {
-      "id": "S-14",
-      "name": "Vendor update handler",
-      "description": "PUT /api/vendors/{slug} handler. Validates input, checks authorization (session slug matches URL slug), updates tenant in DynamoDB, triggers cache invalidation for /{slug} and /sitemap*. Only whitelisted fields are updatable.",
-      "milestone": "V2",
-      "deps": ["S-3", "S-5", "S-13", "S-7"],
-      "enables": ["Vendor can manage page"],
-      "contracts": [
-        "UpdateVendorHandler"
-      ],
-      "parallel": ["S-15", "S-16"],
-      "estimated_tests": 8,
-      "boundaries": ["API Gateway -> API Lambda", "API Lambda -> DynamoDB", "API Lambda -> Cache Invalidator"]
-    },
-    {
-      "id": "S-15",
-      "name": "Photo upload handler",
-      "description": "POST /api/vendors/{slug}/photos/upload-url handler. Validates content type, generates presigned S3 PUT URL with size constraints (10MB max, 5-min expiry), returns the upload URL and asset key. Vendor uploads directly to S3.",
-      "milestone": "V2",
-      "deps": ["S-5", "S-13"],
-      "enables": ["Vendor can manage page"],
-      "contracts": [
-        "GetPhotoUploadUrlHandler"
-      ],
-      "parallel": ["S-14", "S-16"],
-      "estimated_tests": 6,
-      "boundaries": ["API Gateway -> API Lambda", "API Lambda -> S3"]
-    },
-    {
-      "id": "S-16",
-      "name": "Quote requests management handlers",
-      "description": "GET /api/quote-requests/{slug} (paginated list, sorted newest first) and PUT /api/quote-requests/{slug}/{requestId} (mark as read). Both require auth and authorization (vendor can only see their own requests).",
-      "milestone": "V2",
-      "deps": ["S-5", "S-13"],
-      "enables": ["Vendor can view quote requests"],
-      "contracts": [
-        "GetQuoteRequestsHandler",
-        "MarkQuoteRequestReadHandler"
-      ],
-      "parallel": ["S-14", "S-15"],
-      "estimated_tests": 8,
-      "boundaries": ["API Gateway -> API Lambda", "API Lambda -> DynamoDB"]
-    },
-    {
-      "id": "S-17",
-      "name": "Admin SPA scaffold: React + Vite + routing + auth flow",
-      "description": "Set up the admin SPA with React, Vite, React Router. Routes: /admin/login, /admin/, /admin/profile, /admin/calendar, /admin/quotes. Auth flow: login form sends email, check-your-email screen, session detection, logout. Protected route wrapper redirects to login if no session.",
-      "milestone": "V2",
-      "deps": ["S-11"],
-      "enables": ["Vendor can log in"],
-      "contracts": [
+        "GetAndDeleteMagicLink",
+        "RequestMagicLinkHandler",
+        "VerifyMagicLinkHandler",
+        "SendMagicLinkEmail",
+        "LogoutHandler",
+        "WithAuth",
         "AdminAppRouting",
         "AdminAuthFlow"
       ],
       "parallel": [],
-      "estimated_tests": 6,
-      "boundaries": ["Browser -> Admin SPA", "Admin SPA -> Auth API"]
+      "estimated_tests": 28,
+      "boundaries": ["Browser -> Admin SPA -> Auth Lambda -> DynamoDB + SES"]
     },
     {
-      "id": "S-18",
-      "name": "Admin SPA: profile editing page",
-      "description": "Build the profile editing page in the admin SPA. Loads vendor data, editable form fields (name, tagline, story, city, country, categories, social links), product management (add/edit/delete/reorder), photo upload zones (primary + gallery), save button with validation feedback.",
+      "id": "S-6",
+      "name": "A vendor can manage their page, products, and schedule",
+      "description": "Vendor update handler, photo upload (presigned S3 URLs), cache invalidator Lambda, admin profile page (name, photos, story, social links), product CRUD (add/edit/delete/reorder), operational schedule (dates, times), delivery settings (fee, enabled/disabled), deploy and verify edits reflect on public page.",
       "milestone": "V2",
-      "deps": ["S-17", "S-14", "S-15"],
-      "enables": ["Vendor can manage page"],
+      "deps": ["S-5"],
+      "enables": ["Vendor can control their storefront"],
       "contracts": [
+        "UpdateTenant",
+        "UpdateVendorHandler",
+        "GetPhotoUploadUrlHandler",
+        "InvalidateCloudFrontPaths",
         "AdminProfilePage"
       ],
-      "parallel": ["S-19", "S-20"],
-      "estimated_tests": 8,
-      "boundaries": ["Admin SPA -> API Lambda"]
+      "parallel": ["S-7", "S-8"],
+      "estimated_tests": 24,
+      "boundaries": ["Admin SPA -> API Lambda -> DynamoDB + S3 + CloudFront"]
     },
     {
-      "id": "S-19",
-      "name": "Admin SPA: market calendar page",
-      "description": "Build the market calendar page in the admin SPA. Lists market dates sorted chronologically, past dates collapsed, next upcoming date highlighted. Add/edit/delete market dates with date picker. Saves via PUT /api/vendors/{slug} with updated marketDates array.",
+      "id": "S-7",
+      "name": "A vendor can view orders and manage customers",
+      "description": "Order list in admin (paginated, sorted newest first, filterable by status), order detail view (items, delivery info, customer, payment status), customer list derived from orders (name, email, total spent, order count, last order), send email to customer, mark orders fulfilled. Deploy, verify.",
       "milestone": "V2",
-      "deps": ["S-17", "S-14"],
-      "enables": ["Vendor can manage page"],
+      "deps": ["S-5"],
+      "enables": ["Vendor can manage order stream"],
       "contracts": [
-        "AdminCalendarPage"
+        "GetOrdersByVendor",
+        "GetOrderDetail",
+        "UpdateOrderStatus",
+        "GetOrdersByVendorHandler",
+        "GetOrderDetailHandler",
+        "UpdateOrderStatusHandler",
+        "GetCustomersByVendor",
+        "SendCustomerEmail",
+        "AdminOrdersPage",
+        "AdminCustomersPage"
       ],
-      "parallel": ["S-18", "S-20"],
-      "estimated_tests": 6,
-      "boundaries": ["Admin SPA -> API Lambda"]
+      "parallel": ["S-6", "S-8"],
+      "estimated_tests": 20,
+      "boundaries": ["Admin SPA -> API Lambda -> DynamoDB + SES"]
     },
     {
-      "id": "S-20",
-      "name": "Admin SPA: quote requests page",
-      "description": "Build the quote requests page in the admin SPA. Paginated list sorted newest first, unread requests visually distinct, click to expand details, expanding marks as read. Unread count in sidebar nav. Pagination controls.",
+      "id": "S-8",
+      "name": "A vendor can view and manage their quote requests",
+      "description": "Quote request list in admin (paginated, read/unread, expand details, mark as read, unread count in nav), separate from orders. Deploy, verify.",
       "milestone": "V2",
-      "deps": ["S-17", "S-16"],
-      "enables": ["Vendor can view quote requests"],
+      "deps": ["S-5"],
+      "enables": ["Vendor can manage enquiry stream"],
       "contracts": [
+        "GetQuoteRequestsByVendor",
+        "MarkQuoteRequestRead",
+        "GetQuoteRequestsHandler",
+        "MarkQuoteRequestReadHandler",
         "AdminQuotesPage"
       ],
-      "parallel": ["S-18", "S-19"],
-      "estimated_tests": 7,
-      "boundaries": ["Admin SPA -> API Lambda"]
+      "parallel": ["S-6", "S-7"],
+      "estimated_tests": 14,
+      "boundaries": ["Admin SPA -> API Lambda -> DynamoDB"]
     },
     {
-      "id": "S-21",
-      "name": "Admin SPA deploy: S3 + CloudFront behaviour",
-      "description": "Deploy the admin SPA build to the admin S3 bucket. Update CloudFront with /admin/* behaviour pointing to admin S3 origin. Configure index.html fallback for client-side routing.",
+      "id": "S-9",
+      "name": "A vendor can manage their Stripe account and market calendar",
+      "description": "Stripe Connect onboarding flow (vendor connects bank account), Stripe dashboard link for payout management, market calendar page in admin (add/edit/delete market dates). Deploy, verify.",
       "milestone": "V2",
-      "deps": ["S-8", "S-18", "S-19", "S-20"],
-      "enables": ["Vendor can log in", "Vendor can manage page", "Vendor can view quote requests"],
-      "contracts": [],
+      "deps": ["S-6", "S-7"],
+      "enables": ["Vendor has full control"],
+      "contracts": [
+        "StripeConnectOnboarding",
+        "GetStripeAccountLink",
+        "AdminCalendarPage",
+        "AdminStripePage"
+      ],
       "parallel": [],
-      "estimated_tests": 0,
-      "boundaries": ["Terraform -> AWS"]
+      "estimated_tests": 14,
+      "boundaries": ["Admin SPA -> API Lambda -> Stripe + DynamoDB"]
     },
     {
-      "id": "S-22",
-      "name": "Production deploy + full validation",
-      "description": "Deploy all V2 components to production. Validate end-to-end: magic link login flow, profile editing, photo upload, market date management, quote request list, read/unread toggling, logout. Verify cache invalidation works after edits.",
+      "id": "S-10",
+      "name": "SEO + sitemap + production deploy",
+      "description": "Sitemap Lambda (scan tenants, generate XML, write to S3, daily schedule), deploy everything to production, full end-to-end validation.",
       "milestone": "V2",
-      "deps": ["S-10", "S-11", "S-14", "S-15", "S-16", "S-21"],
-      "enables": ["Vendor can log in", "Vendor can manage page", "Vendor can view quote requests"],
-      "contracts": [],
+      "deps": ["S-8", "S-9"],
+      "enables": ["Production live"],
+      "contracts": [
+        "ScanAllTenants",
+        "GenerateSitemaps"
+      ],
       "parallel": [],
-      "estimated_tests": 10,
-      "boundaries": ["End-to-end"]
+      "estimated_tests": 14,
+      "boundaries": ["EventBridge -> Sitemap Lambda -> DynamoDB + S3"]
     }
   ]
 }

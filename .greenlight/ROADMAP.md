@@ -13,9 +13,10 @@ graph TB
     end
 
     subgraph "Compute"
-        Renderer["Renderer Lambda<br/>SSR vendor pages"]
-        API["API Lambda<br/>CRUD + quotes"]
+        Renderer["Renderer Lambda<br/>SSR vendor pages<br/>+ product catalogue"]
+        API["API Lambda<br/>CRUD + checkout<br/>+ orders + customers"]
         Auth["Auth Lambda<br/>Magic link + sessions"]
+        StripeWH["Stripe Webhook Lambda<br/>Payment confirmation<br/>+ order creation"]
         Sitemap["Sitemap Lambda<br/>Scheduled daily"]
         CacheInv["Cache Invalidator<br/>Lambda"]
     end
@@ -39,6 +40,10 @@ graph TB
         SES["SES<br/>noreply@dmercato.com"]
     end
 
+    subgraph "Payments"
+        Stripe["Stripe Connect<br/>Express accounts<br/>Destination charges"]
+    end
+
     subgraph "Scheduling"
         EB["EventBridge<br/>Daily cron"]
     end
@@ -60,16 +65,24 @@ graph TB
 
     APIGW --> API
     APIGW --> Auth
+    APIGW --> StripeWH
 
     Renderer --> DDB_Tenants
     API --> DDB_Tenants
     API --> DDB_Quotes
+    API --> DDB_Orders
     API --> S3_Assets
     API --> CacheInv
+    API --> Stripe
+    API --> SES
     Auth --> DDB_Sessions
     Auth --> DDB_Magic
     Auth --> SES
-    API --> SES
+    StripeWH --> DDB_Orders
+    StripeWH --> DDB_Tenants
+    StripeWH --> SES
+
+    Stripe -->|"webhook"| APIGW
 
     CacheInv --> CF
 
@@ -80,100 +93,88 @@ graph TB
     Renderer -.->|"cold start"| SSM
     API -.->|"cold start"| SSM
     Auth -.->|"cold start"| SSM
+    StripeWH -.->|"cold start"| SSM
 ```
 
-## Milestones
+## Slice Map (10 slices)
 
-### V1 -- Vendor Page + Quote Form
+### V1 -- Vendor Page + Product Catalogue + Checkout + Quote Form
 
-**Goal:** Oscar's vendor page is live at `dmercato.com/sweet-sin`, fully indexed by Google, with a working quote form.
+**Goal:** Oscar's vendor page is live at `dmercato.com/sweet-sin` with a working product catalogue, checkout flow, and quote request form. Customers can buy products and request custom event catering.
 
-**Validation:** Page renders with full SEO, quote form delivers email to vendor.
+**Validation:** Page renders with products and prices. Customer can complete a purchase via Stripe. Quote form delivers email to vendor. Both order receipt and vendor notification emails are sent.
 
-| Slice | Description | Dependencies |
-|-------|-------------|--------------|
-| V1-S1 | Terraform foundation: DynamoDB tables, S3 buckets, SSM params, IAM roles | None |
-| V1-S2 | Shared types package (`packages/shared/types/`) | None |
-| V1-S3 | DynamoDB client + tenant read helpers (`packages/shared/db/`) | V1-S2 |
-| V1-S4 | Renderer Lambda: SSR vendor page with inline CSS, SEO meta, JSON-LD | V1-S2, V1-S3 |
-| V1-S5 | Terraform compute: Renderer Lambda, API Gateway, CloudFront distribution | V1-S1 |
-| V1-S6 | Quote request handler: validation, DynamoDB write, SES notification | V1-S2, V1-S3 |
-| V1-S7 | Terraform SES: domain verification, email identity, templates | V1-S1 |
-| V1-S8 | Sitemap Lambda: scan tenants, generate XML, write to S3 | V1-S2, V1-S3 |
-| V1-S9 | Seed script: insert Oscar's tenant data into DynamoDB | V1-S1, V1-S2 |
-| V1-S10 | End-to-end deploy + smoke test: staging then production | V1-S1 through V1-S9 |
+| Slice | Description | Dependencies | Parallel |
+|-------|-------------|--------------|----------|
+| S-1 | Terraform foundation: DynamoDB tables, S3 buckets, SSM params, IAM roles | None | -- |
+| S-2 | A visitor can see a vendor page with product catalogue | S-1 | -- |
+| S-3 | A visitor can purchase products and receive a confirmation | S-2 | S-4 |
+| S-4 | A visitor can submit a quote request | S-2 | S-3 |
 
-### V2 -- Admin Dashboard
+```mermaid
+graph LR
+    S1["S-1<br/>Terraform<br/>foundation<br/>COMPLETE"] --> S2["S-2<br/>Vendor page<br/>+ products"]
+    S2 --> S3["S-3<br/>Checkout<br/>+ payments"]
+    S2 --> S4["S-4<br/>Quote<br/>requests"]
 
-**Goal:** Oscar can log in, edit his page, upload photos, and manage quote requests.
+    style S1 fill:#2D8A4E,color:#fff
+    style S3 stroke-dasharray: 5 5
+    style S4 stroke-dasharray: 5 5
+```
 
-**Validation:** Vendor can independently update their page content without developer intervention.
+S-3 and S-4 can be built in parallel after S-2 is complete.
 
-| Slice | Description | Dependencies |
-|-------|-------------|--------------|
-| V2-S1 | Auth Lambda: magic link generation, token storage, email send | V1 complete |
-| V2-S2 | Auth Lambda: token verification, session creation, cookie set | V2-S1 |
-| V2-S3 | Session middleware: `withAuth()` HOF, session validation | V2-S2 |
-| V2-S4 | Vendor update handler: PUT /api/vendors/{slug} with validation | V2-S3 |
-| V2-S5 | Photo upload handler: presigned S3 URL generation | V2-S3 |
-| V2-S6 | Quote requests handler: list (paginated), mark as read | V2-S3 |
-| V2-S7 | Cache invalidator Lambda: invalidate CloudFront on vendor update | V2-S4 |
-| V2-S8 | Admin SPA: React + Vite scaffold, routing, auth flow (login, verify, redirect) | V2-S2 |
-| V2-S9 | Admin SPA: profile editing page (all fields, photo upload, products, market dates) | V2-S8, V2-S4, V2-S5 |
-| V2-S10 | Admin SPA: quote requests page (list, expand, mark read, pagination) | V2-S8, V2-S6 |
-| V2-S11 | Terraform: Auth Lambda, admin S3 bucket + CloudFront behaviour, updated IAM | V2-S1 through V2-S7 |
-| V2-S12 | End-to-end deploy + smoke test: full admin flow on staging then production | All V2 slices |
+### V2 -- Admin Dashboard + Order Management + CRM
 
-### Validation Gate
+**Goal:** Oscar can log in, manage his page and products, view and fulfil orders, manage customers, handle quote requests, connect his Stripe account, and manage market dates.
 
-**60 days from V1 production launch.**
+**Validation:** Vendor can independently manage their entire storefront, process orders, and communicate with customers without developer intervention.
 
-| Metric | Target |
-|--------|--------|
-| Active vendors | 5 |
-| Real customer enquiries | 1 |
-| Market organiser referrals | 1 |
+| Slice | Description | Dependencies | Parallel |
+|-------|-------------|--------------|----------|
+| S-5 | A vendor can log in and see their dashboard | S-3, S-4 | -- |
+| S-6 | A vendor can manage their page, products, and schedule | S-5 | S-7, S-8 |
+| S-7 | A vendor can view orders and manage customers | S-5 | S-6, S-8 |
+| S-8 | A vendor can view and manage their quote requests | S-5 | S-6, S-7 |
+| S-9 | A vendor can manage their Stripe account and market calendar | S-6, S-7 | -- |
+| S-10 | SEO + sitemap + production deploy | S-8, S-9 | -- |
 
-**Do not proceed to V3+ until all three targets are met.** If targets are not met, evaluate product-market fit before investing further.
+```mermaid
+graph LR
+    S5["S-5<br/>Auth +<br/>dashboard"] --> S6["S-6<br/>Page +<br/>products +<br/>schedule"]
+    S5 --> S7["S-7<br/>Orders +<br/>customers"]
+    S5 --> S8["S-8<br/>Quote<br/>requests"]
+    S6 --> S9["S-9<br/>Stripe +<br/>calendar"]
+    S7 --> S9
+    S8 --> S10["S-10<br/>SEO +<br/>deploy"]
+    S9 --> S10
 
-### V3 -- Marketplace (post-validation)
+    style S6 stroke-dasharray: 5 5
+    style S7 stroke-dasharray: 5 5
+    style S8 stroke-dasharray: 5 5
+```
 
-**Goal:** Dmercato becomes a discovery platform. Users can browse by city and category.
+S-6, S-7, and S-8 can all be built in parallel after S-5 is complete.
 
-| Slice | Description |
-|-------|-------------|
-| V3-S1 | Homepage: hero, city grid, category row, featured vendors |
-| V3-S2 | City pages: vendor list filtered by city GSI, pagination |
-| V3-S3 | Category pages: vendor list filtered by category |
-| V3-S4 | Search handler: DynamoDB scan with filter (sufficient for < 100 vendors) |
-| V3-S5 | Reserved path routing: ensure /{slug} does not conflict with /adelaide, /search, etc. |
-| V3-S6 | Renderer updates: homepage, city page, category page SSR templates |
+## Full Dependency Graph
 
-### V4 -- Checkout (post-validation)
+```mermaid
+graph TD
+    S1["S-1 Terraform foundation<br/>COMPLETE"] --> S2["S-2 Vendor page + products"]
+    S2 --> S3["S-3 Checkout + payments"]
+    S2 --> S4["S-4 Quote requests"]
+    S3 --> S5["S-5 Auth + dashboard"]
+    S4 --> S5
+    S5 --> S6["S-6 Page management"]
+    S5 --> S7["S-7 Orders + CRM"]
+    S5 --> S8["S-8 Quote management"]
+    S6 --> S9["S-9 Stripe + calendar"]
+    S7 --> S9
+    S8 --> S10["S-10 SEO + deploy"]
+    S9 --> S10
 
-**Goal:** Customers can buy products directly from vendor pages. Revenue generation begins.
-
-| Slice | Description |
-|-------|-------------|
-| V4-S1 | Stripe Connect onboarding flow for vendors |
-| V4-S2 | Checkout handler: create Stripe PaymentIntent, platform fee calculation |
-| V4-S3 | Stripe webhook handler: payment confirmation, order creation |
-| V4-S4 | Order management: vendor views orders, marks as fulfilled |
-| V4-S5 | Vendor page: "Add to cart" and checkout flow |
-| V4-S6 | Subscription billing: Stripe subscription for vendor monthly/annual plan |
-
-### V5 -- Custom Domains (post-validation)
-
-**Goal:** Vendors can have their own domain pointing to their Dmercato page.
-
-| Slice | Description |
-|-------|-------------|
-| V5-S1 | Domain availability check via Route53 Domains API |
-| V5-S2 | Step Functions state machine: domain registration + DNS + ACM orchestration |
-| V5-S3 | Domain provisioner Lambda tasks (10 tasks in the state machine) |
-| V5-S4 | Lambda@Edge: route custom domain requests to correct vendor |
-| V5-S5 | Admin: domain management UI (check, register, status tracking) |
-| V5-S6 | CloudFront update: add custom domain as alternate domain name |
+    style S1 fill:#2D8A4E,color:#fff
+```
 
 ## Product Roadmap
 
@@ -181,59 +182,75 @@ graph TB
 gantt
     title Dmercato Product Roadmap
     dateFormat  YYYY-MM-DD
-    axisFormat  %b %Y
+    axisFormat  %b %d
 
-    section V1 - Vendor Page
-    Terraform foundation       :v1s1, 2026-03-10, 3d
-    Shared types + DB client   :v1s23, 2026-03-10, 3d
-    Renderer Lambda            :v1s4, after v1s23, 4d
-    Quote request handler      :v1s6, after v1s23, 2d
-    Terraform compute + SES    :v1s57, after v1s1, 3d
-    Sitemap + Seed + Deploy    :v1s8910, after v1s4, 3d
-    V1 Launch                  :milestone, v1launch, after v1s8910, 0d
+    section V1 - Vendor Page + Checkout
+    S-1 Terraform (complete)       :done, s1, 2026-03-07, 1d
+    S-2 Vendor page + products     :s2, 2026-03-08, 5d
+    S-3 Checkout + payments        :s3, after s2, 5d
+    S-4 Quote requests             :s4, after s2, 3d
+    V1 Complete                    :milestone, v1done, after s3, 0d
 
     section V2 - Admin Dashboard
-    Auth Lambda                :v2s12, after v1launch, 4d
-    Session middleware         :v2s3, after v2s12, 2d
-    API handlers (CRUD)        :v2s456, after v2s3, 4d
-    Cache invalidator          :v2s7, after v2s456, 1d
-    Admin SPA scaffold         :v2s8, after v2s12, 3d
-    Admin SPA pages            :v2s910, after v2s8, 5d
-    Terraform + Deploy         :v2s1112, after v2s910, 3d
-    V2 Launch                  :milestone, v2launch, after v2s1112, 0d
-
-    section Validation Gate
-    60-day validation period   :validation, after v1launch, 60d
-    Gate decision              :milestone, gate, after validation, 0d
-
-    section V3 - Marketplace
-    Homepage + city pages      :v3, after gate, 14d
-
-    section V4 - Checkout
-    Stripe Connect + payments  :v4, after v3, 21d
-
-    section V5 - Custom Domains
-    Route53 + Step Functions   :v5, after v4, 21d
+    S-5 Auth + dashboard           :s5, after s3, 4d
+    S-6 Page management            :s6, after s5, 4d
+    S-7 Orders + CRM              :s7, after s5, 4d
+    S-8 Quote management          :s8, after s5, 3d
+    S-9 Stripe + calendar         :s9, after s7, 3d
+    S-10 SEO + deploy             :s10, after s9, 3d
+    V2 Complete / Production      :milestone, v2done, after s10, 0d
 ```
 
 ## Timeline Summary
 
-| Milestone | Target | Duration | Depends On |
-|-----------|--------|----------|------------|
-| V1 Launch | Week 3 from start | ~2.5 weeks | Nothing |
-| V2 Launch | Week 5 from start | ~2 weeks | V1 |
-| Validation Gate | 60 days from V1 launch | 8-9 weeks | V1 live |
-| V3 | Post-validation | ~2 weeks | Gate passed |
-| V4 | Post-V3 | ~3 weeks | V3 |
-| V5 | Post-V4 | ~3 weeks | V4 |
+| Milestone | Estimated Duration | Depends On |
+|-----------|-------------------|------------|
+| V1 Complete (S-1 through S-4) | ~2 weeks from now | S-1 (done) |
+| V2 Complete (S-5 through S-10) | ~2.5 weeks after V1 | V1 complete |
+| Production Launch | ~4.5 weeks from now | V2 complete |
+
+## Slice Estimates
+
+| Slice | Estimated Tests | Estimated Effort | Key Risks |
+|-------|-----------------|------------------|-----------|
+| S-1 | 0 (infra) | Done | -- |
+| S-2 | ~20 | 4-5 days | Inline CSS complexity, SSR performance |
+| S-3 | ~24 | 4-5 days | Stripe Connect integration, webhook reliability |
+| S-4 | ~14 | 2-3 days | SES sandbox limits |
+| S-5 | ~28 | 3-4 days | Magic link email delivery |
+| S-6 | ~24 | 3-4 days | Photo upload UX, schedule UI complexity |
+| S-7 | ~20 | 3-4 days | Customer aggregation query performance |
+| S-8 | ~14 | 2-3 days | Low risk (similar patterns to S-7) |
+| S-9 | ~14 | 2-3 days | Stripe onboarding redirect flow |
+| S-10 | ~14 | 2-3 days | Production deployment verification |
+
+**Total estimated tests:** ~172
 
 ## Risk Register
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| SES sandbox limits block quote emails | High | Medium | Apply for production SES access early in V1. Use verified emails for testing |
+| SES sandbox limits block emails | High | Medium | Apply for production SES access early. Use verified emails for testing |
+| Stripe Connect onboarding complexity | Medium | Medium | Use Express accounts with Stripe-hosted onboarding (minimal custom UI). Test with Stripe test mode |
 | Cold start latency on Renderer Lambda | Medium | Medium | arm64 + small bundle + provisioned concurrency if needed |
-| DynamoDB nested product updates hit 400KB item limit | Low | Low | 50 products at ~1KB each = ~50KB, well under limit. Monitor item sizes |
+| DynamoDB nested data hits 400KB item limit | Low | Low | 50 products + schedule + market dates at ~2KB each = ~100KB, under limit. Monitor item sizes |
+| Stripe webhook delivery failures | Medium | Low | Webhook handler is idempotent. Stripe retries for up to 3 days. CloudWatch alarms on webhook errors |
+| Customer aggregation query slow at scale | Low | Low | Orders table GSI supports vendor queries. Aggregation is in-memory for < 1000 orders per vendor. Fine for MVP |
 | CloudFront cache serves stale vendor data | Medium | Low | 60s TTL + explicit invalidation on write. Acceptable staleness window |
-| Vendor adoption below validation gate | High | Medium | Product risk, not technical. Focus on Oscar as lighthouse customer |
+| Vendor adoption below expectations | High | Medium | Product risk, not technical. Focus on Oscar as lighthouse customer |
 | Magic link emails land in spam | Medium | Medium | DKIM + SPF + DMARC via SES domain verification. Simple text emails |
+| Cart state lost on page reload | Low | Low | Cart persisted in localStorage. Survives page reload. Cleared on successful checkout |
+
+## Post-MVP Roadmap
+
+These features are planned for after the MVP 10-slice scope is validated:
+
+| Feature | Prerequisite | Estimated Effort |
+|---------|-------------|------------------|
+| Marketplace homepage + city pages | Vendor density (5+ vendors) | 2 weeks |
+| Search | Vendor volume (50+ vendors) | 1 week |
+| Custom domains | Revenue model validated | 3 weeks |
+| Subscription billing | Platform fee model decided | 1 week |
+| Photo resize pipeline | Performance data showing need | 3 days |
+| Vendor analytics | Multiple vendors active | 2 weeks |
+| Discount codes | Purchase volume data | 1 week |

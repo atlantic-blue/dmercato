@@ -311,3 +311,207 @@ Each vendor needs a URL. The two main patterns are `dmercato.com/{slug}` (subdir
 - Vendor slugs must be validated against reserved paths on creation
 - Reserved paths list: `api`, `admin`, `assets`, `sitemap`, `robots.txt`, `favicon.ico`, `www`, `search`, plus any future marketplace routes (city names handled in V3)
 - Renderer Lambda receives all non-reserved paths and looks up the slug in DynamoDB. 404 for unknown slugs
+
+---
+
+## DEC-009: Stripe Connect with Express accounts and destination charges
+
+**Date:** 2026-03-07
+**Status:** Accepted
+**Category:** Payments
+**Supersedes:** Part of original design had payments deferred to V4
+
+### Context
+
+The MVP scope now includes checkout and payments. Vendors sell products on their page and need to receive payments. The platform needs to collect a fee on each transaction.
+
+### Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **A: Stripe Connect Express + destination charges** | Stripe-hosted onboarding (minimal UI). Stripe-hosted dashboard for payouts. Platform fee via application_fee_amount. Zero PCI scope with Checkout Sessions. Lowest implementation burden | Less control over onboarding UX. Stripe branding on onboarding/dashboard. Express account limitations (no full API access for vendor) |
+| B: Stripe Connect Standard + direct charges | Vendor has full Stripe dashboard. Direct relationship with Stripe. Most flexibility | Vendor controls pricing and refunds directly. Platform has less control. Harder to enforce fee structure. Complex for non-technical vendors |
+| C: Stripe Connect Custom + API onboarding | Full control over onboarding UX. Custom dashboard. Maximum flexibility | Must build KYC collection forms. Must build payout dashboard. Significantly more development. Regulatory compliance burden on platform |
+| D: PayPal Commerce Platform | Alternative payment processor. Wide consumer adoption | Less developer-friendly API. More complex fee structures. Slower payouts. Less ecosystem tooling |
+
+### Decision
+
+**Option A: Stripe Connect Express with destination charges and Stripe Checkout Sessions.**
+
+### Rationale
+
+- Express accounts use Stripe-hosted onboarding: vendor clicks a link, fills out KYC on Stripe's form, and is onboarded. The platform builds zero KYC UI
+- Express accounts have a Stripe-hosted dashboard for payout management: vendor clicks a login link and manages their bank details and payouts on Stripe's UI. The platform builds zero payout UI
+- Destination charges mean the payment is created on the platform account and transferred to the vendor minus the platform fee. One API call handles the fee split
+- Stripe Checkout Sessions handle the entire payment UI: card input, 3D Secure, error states, PCI compliance. Zero PCI scope for the platform
+- This is the lowest-effort path to a working payment system. Stripe handles onboarding, payment UI, fee splitting, and payout management. The platform handles order creation and notification
+- The main trade-off (Stripe-branded onboarding) is acceptable for MVP. Vendors care about receiving payments, not about the branding on the setup flow
+
+### Consequences
+
+- Platform needs a Stripe account in Connect mode
+- Each vendor gets a Stripe Express connected account
+- Stripe secret key and webhook signing secret stored in SSM
+- New Lambda: Stripe Webhook handler (separate from API Lambda for isolation)
+- Vendor page cart functionality requires minimal inline JS (localStorage for cart state)
+- If vendor has not completed Stripe onboarding, add-to-cart is disabled on their public page
+- Refund processing is done by the vendor through Stripe's Express dashboard, not through the admin UI (MVP simplification)
+
+---
+
+## DEC-010: Orders and Quote Requests as separate business streams
+
+**Date:** 2026-03-07
+**Status:** Accepted
+**Category:** Business Model
+
+### Context
+
+The platform has two types of customer interactions: purchasing products from the catalogue (orders) and requesting custom event catering quotes (quote requests). The question is whether these should be unified or kept separate.
+
+### Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **A: Separate streams** | Clear mental model for vendors. Different workflows (orders are transactional, quotes are conversational). Different data shapes. Different statuses. Different admin views | Two navigation items instead of one. Two sets of API endpoints. Slightly more admin UI to build |
+| B: Unified "enquiries" | Single admin view. Simpler navigation. Less UI surface | Confusing: an order for 12 cookies and a quote for a corporate event for 200 people are very different things. Forced to genericise the data model. Status transitions differ |
+
+### Decision
+
+**Option A: Separate business streams with separate admin views.**
+
+### Rationale
+
+- Orders and quote requests have fundamentally different lifecycles. An order is: paid -> fulfilled. A quote request is: unread -> read -> (vendor responds externally via email). Merging them forces awkward status gymnastics
+- The data shapes are different. An order has items, quantities, prices, payment info, delivery details. A quote request has event type, guest count, message. Unifying them means either a bloated generic model or two sub-types pretending to be one
+- Vendors think about these differently. "I have 5 orders to pack today" is a different mental task from "I have 2 enquiries about catering". Separate views match the vendor's mental model
+- The cost of separation is small: two nav items, two list views. The cost of merging is ongoing confusion
+
+### Consequences
+
+- Admin sidebar has separate "Orders" and "Quote Requests" navigation items
+- Two separate DynamoDB tables (orders, quoteRequests) with their own GSIs
+- Separate API endpoint groups: `/api/orders/*` and `/api/quote-requests/*`
+- Dashboard quick stats include counts from both streams
+
+---
+
+## DEC-011: Operational schedule over simple market dates for delivery slots
+
+**Date:** 2026-03-07
+**Status:** Accepted
+**Category:** Data Model
+
+### Context
+
+Customers need to select a delivery/pickup date and time when checking out. The system needs to know when the vendor is operational. The old design had only market dates (specific dates at specific markets). The new checkout flow requires a more general concept: when is the vendor available for orders?
+
+### Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **A: Operational schedule (recurring weekly + date overrides)** | Covers recurring patterns ("every Saturday 9-3"). Covers one-offs ("special Sunday market on March 15"). Flexible enough for varied vendor schedules. Checkout can compute available slots | Must handle recurrence logic in checkout slot calculation. Slightly more complex data model |
+| B: Explicit date listing (vendor adds each date manually) | Simple data model. No recurrence logic | Vendor must manually add every operational date. Tedious for weekly vendors. Easy to forget to add dates. Poor UX |
+| C: Calendar integration (Google Calendar sync) | Vendor uses familiar tool. Real-time sync | Third-party dependency. OAuth complexity. Sync failures. Over-engineered for MVP |
+
+### Decision
+
+**Option A: Operational schedule with recurring weekly slots and optional date-specific overrides.**
+
+### Rationale
+
+- Most market vendors have a regular schedule: "Saturday 9:00-15:00" or "Friday and Saturday 10:00-16:00". Recurring weekly slots capture this with one setup
+- Date-specific overrides handle exceptions: a special Sunday market, or closing on a holiday. The vendor adds/removes individual dates as needed
+- The checkout flow computes available slots by: (1) generating dates from recurring weekly schedule, (2) applying date-specific overrides, (3) filtering to future dates only, (4) presenting as date+time picker
+- This is separate from market dates (which are public calendar entries showing where the vendor will be physically located). Operational schedule is about when the vendor can fulfil orders
+- Explicit date listing (Option B) would be tedious: a vendor who operates every Saturday would need to add 52 dates per year
+
+### Consequences
+
+- `operationalSchedule` nested array in tenant record with OperationalSlot objects
+- Each slot has: dayOfWeek (0-6), startTime, endTime, and optional specificDate for overrides
+- Checkout handler implements slot calculation logic: given a vendor's schedule, produce available date+time slots for the next N days
+- Market dates remain separate: they are displayed on the public page as a calendar of physical market appearances
+- Operational schedule is managed in the Profile tab of admin (alongside delivery settings)
+
+---
+
+## DEC-012: Customer CRM derived from orders, no separate customer table
+
+**Date:** 2026-03-07
+**Status:** Accepted
+**Category:** Data Model
+
+### Context
+
+Vendors want to see their customer list: who has bought from them, how much they've spent, how many orders they've placed. The question is whether to maintain a separate customers table or derive customer data from orders.
+
+### Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **A: Derived from orders (query-time aggregation)** | No data sync. Single source of truth (orders). No extra table. Always consistent. No write amplification on new orders | Query-time aggregation is slower than pre-computed. Must scan all orders to compute customer stats |
+| B: Separate customers table (materialised view) | Fast reads. Pre-computed stats. Can add customer-specific data (notes, tags) | Must update customer record on every new order (write amplification). Sync bugs possible. Extra table to maintain. Customer deduplication logic needed |
+
+### Decision
+
+**Option A: Derive customer data from orders at query time.**
+
+### Rationale
+
+- At MVP scale (< 1000 orders per vendor), aggregating customer stats from orders is fast. DynamoDB GSI query by vendorSlug returns all orders, and in-memory aggregation by email produces the customer list
+- No data sync issues: customer stats are always exactly correct because they're computed from the actual orders
+- No write amplification: creating an order is a single DynamoDB PutItem, not PutItem + UpdateItem on a customer record
+- If scale becomes a problem, a materialised view (DynamoDB Streams -> aggregation Lambda -> customers table) can be added later without changing the API contract
+- Customer identity is email-based (no customer accounts), which keeps the model simple
+
+### Consequences
+
+- `GET /api/customers/{slug}` queries the orders GSI for all vendor orders, then aggregates by customerEmail in the Lambda handler
+- Customer list response includes: name, email, totalSpent, orderCount, lastOrderDate
+- Performance is bounded by order count per vendor. At 1000 orders with ~100 unique customers, this is < 1 second
+- If order volume grows significantly, add DynamoDB Streams + aggregation. The API contract stays the same
+- No customer notes or tags in MVP. Email is the only way to reach customers
+
+---
+
+## DEC-013: Minimal inline JS for cart functionality
+
+**Date:** 2026-03-07
+**Status:** Accepted
+**Category:** Frontend / Performance
+**Extends:** DEC-006 (Inline CSS)
+
+### Context
+
+The original design had zero JavaScript on vendor pages. Adding checkout requires cart functionality: add/remove items, quantity management, and localStorage persistence. The question is how to add this without breaking the self-contained nature of vendor pages.
+
+### Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **A: Minimal inline JS (vanilla, in `<script>` tag)** | Self-contained. No framework. Small footprint (~2-5KB). Works with inline CSS approach. No external dependencies | Must write vanilla JS for cart UI. No component model. Manual DOM manipulation |
+| B: React hydration (partial) | Component model. Familiar framework. Reuse admin SPA patterns | Massive bundle increase. Hydration latency. Framework overhead for a cart drawer. Breaks self-contained principle |
+| C: Alpine.js / Petite-Vue | Lightweight interactivity. Declarative. Small bundle (~15KB) | External dependency. Another framework to learn. Still adds to page weight |
+| D: Web Components | Standards-based. Encapsulated. No framework | Browser support concerns. Verbose API. Harder to test. Over-engineered for a cart |
+
+### Decision
+
+**Option A: Minimal inline vanilla JS in a `<script>` tag at the end of the HTML body.**
+
+### Rationale
+
+- Cart functionality is small: add item, remove item, change quantity, calculate total, show/hide drawer, persist to localStorage, redirect to checkout. This is ~50-100 lines of vanilla JS
+- Inline JS keeps the page self-contained: one HTTP response contains everything. Consistent with the inline CSS approach
+- No framework dependency means zero download cost. The JS is in the HTML response, already cached by CloudFront
+- The page still renders fully without JS (products are visible, just can't add to cart). Progressive enhancement
+- React hydration for a cart drawer would add 40-100KB of framework code. Absurd for what is essentially a few DOM operations
+- The vendor page is a document, not an application. A small script for cart interactivity is appropriate
+
+### Consequences
+
+- Cart JS is a template string in the Renderer Lambda, appended to the HTML as an inline `<script>` tag
+- Cart state stored in localStorage keyed by vendorSlug (so carts don't mix between vendors)
+- Checkout button makes a POST to `/api/checkout/sessions` and redirects to the returned Stripe Checkout URL
+- If JS is disabled, products display without add-to-cart buttons (graceful degradation)
+- Cart JS must be tested: integration tests verify cart + checkout flow works end-to-end

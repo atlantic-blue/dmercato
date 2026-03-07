@@ -11,35 +11,23 @@ Mode: yolo
 | ID | Name | Status | Tests | Security | Deps |
 |----|------|--------|-------|----------|------|
 | S-1 | Terraform foundation: DynamoDB, S3, IAM | complete | 0 | 0 | -- |
-| S-2 | Shared types package | pending | 0 | 0 | -- |
-| S-3 | DB client + tenant helpers | pending | 0 | 0 | S-2 |
-| S-4 | Renderer Lambda: SSR vendor page | pending | 0 | 0 | S-2, S-3 |
-| S-5 | Quote request handler + DB helpers | pending | 0 | 0 | S-2, S-3 |
-| S-6 | Sitemap Lambda | pending | 0 | 0 | S-2, S-3 |
-| S-7 | Cache invalidator Lambda | pending | 0 | 0 | -- |
-| S-8 | Terraform compute: API Gateway + CloudFront + Lambda deploy | pending | 0 | 0 | S-1 |
-| S-9 | Seed data script: Oscar (Sweet Sin) | pending | 0 | 0 | S-1, S-2 |
-| S-10 | Staging deploy + smoke test | pending | 0 | 0 | S-4..S-9 |
-| S-11 | Auth Lambda: magic link + session + logout | pending | 0 | 0 | S-2, S-3, S-12 |
-| S-12 | Session + magic link DB helpers | pending | 0 | 0 | S-2 |
-| S-13 | withAuth middleware | pending | 0 | 0 | S-2, S-12 |
-| S-14 | Vendor update handler | pending | 0 | 0 | S-3, S-5, S-13, S-7 |
-| S-15 | Photo upload handler | pending | 0 | 0 | S-5, S-13 |
-| S-16 | Quote requests management handlers | pending | 0 | 0 | S-5, S-13 |
-| S-17 | Admin SPA scaffold: React + Vite + routing + auth flow | pending | 0 | 0 | S-11 |
-| S-18 | Admin SPA: profile editing page | pending | 0 | 0 | S-17, S-14, S-15 |
-| S-19 | Admin SPA: market calendar page | pending | 0 | 0 | S-17, S-14 |
-| S-20 | Admin SPA: quote requests page | pending | 0 | 0 | S-17, S-16 |
-| S-21 | Admin SPA deploy: S3 + CloudFront behaviour | pending | 0 | 0 | S-8, S-18..S-20 |
-| S-22 | Production deploy + full validation | pending | 0 | 0 | S-10, S-11, S-14..S-16, S-21 |
+| S-2 | A visitor can see a vendor page with product catalogue | pending | 0 | 0 | S-1 |
+| S-3 | A visitor can purchase products and receive a confirmation | pending | 0 | 0 | S-2 |
+| S-4 | A visitor can submit a quote request | pending | 0 | 0 | S-2 |
+| S-5 | A vendor can log in and see their dashboard | pending | 0 | 0 | S-3, S-4 |
+| S-6 | A vendor can manage their page, products, and schedule | pending | 0 | 0 | S-5 |
+| S-7 | A vendor can view orders and manage customers | pending | 0 | 0 | S-5 |
+| S-8 | A vendor can view and manage their quote requests | pending | 0 | 0 | S-5 |
+| S-9 | A vendor can manage their Stripe account and market calendar | pending | 0 | 0 | S-6, S-7 |
+| S-10 | SEO + sitemap + production deploy | pending | 0 | 0 | S-8, S-9 |
 
-Progress: [█░░░░░░░░░] 1/22 slices
+Progress: [█░░░░░░░░░] 1/10 slices
 
 ## Current
 
-Slice: S-2 -- Shared types package
+Slice: S-2 -- A visitor can see a vendor page with product catalogue
 Step: pending
-Last activity: 2026-03-07 -- S-1 complete
+Last activity: 2026-03-07 -- Re-sliced to 10 vertical slices with e-commerce
 
 ## Test Summary
 
@@ -56,6 +44,11 @@ Last run: never
 - Inline CSS for vendor pages (no external stylesheets)
 - Subdirectory routing (dmercato.com/{slug})
 - Editorial design: Cormorant Garamond + Public Sans, terracotta accents
+- Region: us-east-1 (global app)
+- CI/CD: GitHub Actions with OIDC, staging auto-deploy, prod manual trigger
+- Prod deploys only through CI (local blocked)
+- Stripe Connect for vendor payments (vendor receives payments minus platform fee)
+- Two business streams: Orders (product purchases) and Quote Requests (custom enquiries)
 
 ## Blockers
 
