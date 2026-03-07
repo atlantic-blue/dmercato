@@ -366,12 +366,18 @@ function renderCartScript(): string {
               overlay.style.display = 'flex';
               var mountEl = document.getElementById('checkout-mount');
               mountEl.innerHTML = '';
-              stripe.initEmbeddedCheckout({ clientSecret: data.data.clientSecret })
+              return stripe.initEmbeddedCheckout({ clientSecret: data.data.clientSecret })
                 .then(function(checkout){
                   stripeCheckout = checkout;
                   checkout.mount('#checkout-mount');
                   localStorage.removeItem(CART_KEY);
                   toggleCart();
+                  btn.disabled = false;
+                  btn.textContent = 'Pay Now';
+                })
+                .catch(function(err){
+                  overlay.style.display = 'none';
+                  alert('Payment form failed to load: ' + (err.message || err));
                   btn.disabled = false;
                   btn.textContent = 'Pay Now';
                 });
@@ -382,8 +388,8 @@ function renderCartScript(): string {
               btn.textContent = 'Pay Now';
             }
           })
-          .catch(function(){
-            alert('Something went wrong. Please try again.');
+          .catch(function(err){
+            alert('Something went wrong: ' + (err.message || err));
             btn.disabled = false;
             btn.textContent = 'Pay Now';
           });
