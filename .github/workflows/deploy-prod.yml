@@ -1,10 +1,7 @@
-name: CI
+name: Deploy Production
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -15,7 +12,7 @@ env:
   TF_VERSION: "1.5"
 
 jobs:
-  lint-test-build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,31 +24,27 @@ jobs:
 
       - run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
       - name: Type check
         run: npm run typecheck
 
       - name: Test
         run: npm test -- --coverage
 
-      - name: Build
-        run: npm run build
-
-  deploy-staging:
-    needs: lint-test-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  deploy-prod:
+    needs: test
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Bootstrap prod backend
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Bootstrap prod state backend
+        run: bash scripts/bootstrap-terraform.sh prod
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -59,14 +52,13 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform init
-        working-directory: infra/environments/staging
+        working-directory: infra/environments/prod
         run: terraform init
 
       - name: Terraform plan
-        working-directory: infra/environments/staging
-        run: terraform plan -out=tfplan -var="environment=staging" -var="project_name=dmercato" -var="aws_region=${{ env.AWS_REGION }}"
+        working-directory: infra/environments/prod
+        run: terraform plan -out=tfplan -var="environment=prod" -var="project_name=dmercato" -var="aws_region=${{ env.AWS_REGION }}"
 
       - name: Terraform apply
-        working-directory: infra/environments/staging
+        working-directory: infra/environments/prod
         run: terraform apply tfplan
-
