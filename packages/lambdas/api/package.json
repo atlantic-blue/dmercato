@@ -13,6 +13,7 @@
     "@aws-sdk/client-s3": "^3.500.0",
     "@aws-sdk/client-lambda": "^3.500.0",
     "@dmercato/types": "*",
-    "@dmercato/db": "*"
+    "@dmercato/db": "*",
+    "stripe": "^14.0.0"
   }
 }

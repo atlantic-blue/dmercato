@@ -256,7 +256,9 @@ async function callStripeCheckout(
     });
 
     return jsonResponse(200, { data: { checkoutSessionId: session.id, clientSecret: session.client_secret } });
-  } catch (_error: unknown) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Stripe checkout error:', message);
     return errorResponse(500, 'STRIPE_ERROR', 'Payment processing failed');
   }
 }

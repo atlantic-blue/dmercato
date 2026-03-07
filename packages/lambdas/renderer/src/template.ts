@@ -252,15 +252,44 @@ function renderCartScript(): string {
         var container = document.getElementById('cart-items');
         if(!container) return;
         container.innerHTML = '';
-        cart.forEach(function(item){
+        cart.forEach(function(item, idx){
           var row = document.createElement('div');
           row.className = 'cart-item';
+          var info = document.createElement('div');
+          info.className = 'cart-item-info';
           var nameSpan = document.createElement('span');
-          nameSpan.textContent = item.name + ' x' + item.qty;
+          nameSpan.className = 'cart-item-name';
+          nameSpan.textContent = item.name;
           var priceSpan = document.createElement('span');
+          priceSpan.className = 'cart-item-price';
           priceSpan.textContent = '$' + (item.price * item.qty / 100).toFixed(2);
-          row.appendChild(nameSpan);
-          row.appendChild(priceSpan);
+          info.appendChild(nameSpan);
+          info.appendChild(priceSpan);
+          var controls = document.createElement('div');
+          controls.className = 'cart-item-controls';
+          var minusBtn = document.createElement('button');
+          minusBtn.className = 'qty-btn';
+          minusBtn.textContent = '\u2212';
+          minusBtn.setAttribute('aria-label','Decrease quantity');
+          minusBtn.onclick = (function(i){ return function(){ changeQty(i, -1); }; })(idx);
+          var qtySpan = document.createElement('span');
+          qtySpan.className = 'qty-value';
+          qtySpan.textContent = String(item.qty);
+          var plusBtn = document.createElement('button');
+          plusBtn.className = 'qty-btn';
+          plusBtn.textContent = '+';
+          plusBtn.setAttribute('aria-label','Increase quantity');
+          plusBtn.onclick = (function(i){ return function(){ changeQty(i, 1); }; })(idx);
+          var removeBtn = document.createElement('button');
+          removeBtn.className = 'cart-remove-btn';
+          removeBtn.textContent = 'Remove';
+          removeBtn.onclick = (function(i){ return function(){ removeItem(i); }; })(idx);
+          controls.appendChild(minusBtn);
+          controls.appendChild(qtySpan);
+          controls.appendChild(plusBtn);
+          controls.appendChild(removeBtn);
+          row.appendChild(info);
+          row.appendChild(controls);
           container.appendChild(row);
         });
         var subtotal = cart.reduce(function(s,i){ return s + i.price*i.qty; }, 0);
@@ -268,6 +297,22 @@ function renderCartScript(): string {
         if(el) el.textContent = '$'+(subtotal/100).toFixed(2);
         var tel = document.getElementById('cart-total-value');
         if(tel) tel.textContent = '$'+(subtotal/100).toFixed(2);
+        var countEl = document.getElementById('cart-count');
+        if(countEl) countEl.textContent = String(cart.reduce(function(s,i){ return s+i.qty; },0));
+      }
+      function changeQty(idx, delta){
+        var cart = getCart();
+        if(!cart[idx]) return;
+        cart[idx].qty += delta;
+        if(cart[idx].qty <= 0) cart.splice(idx, 1);
+        saveCart(cart);
+        updateCartDisplay();
+      }
+      function removeItem(idx){
+        var cart = getCart();
+        cart.splice(idx, 1);
+        saveCart(cart);
+        updateCartDisplay();
       }
       document.addEventListener('click', function(e){
         var btn = e.target.closest('.add-to-cart');
@@ -429,7 +474,18 @@ function renderInlineCss(): string {
     .cart-header{display:flex;justify-content:space-between;align-items:center}
     .cart-header h2{font-size:1.25rem}
     .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer}
-    .cart-item{display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border)}
+    .nav-cart-btn{background:none;border:1px solid var(--border);padding:0.4rem 1rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;font-family:'Public Sans',sans-serif;color:var(--text);transition:all 0.2s}
+    .nav-cart-btn:hover{border-color:var(--terracotta);color:var(--terracotta)}
+    .cart-item{display:flex;flex-direction:column;gap:0.25rem;padding:0.75rem 0;border-bottom:1px solid var(--border)}
+    .cart-item-info{display:flex;justify-content:space-between;align-items:center}
+    .cart-item-name{font-weight:600;font-size:0.9rem}
+    .cart-item-price{font-weight:600}
+    .cart-item-controls{display:flex;align-items:center;gap:0.5rem}
+    .qty-btn{width:1.75rem;height:1.75rem;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s}
+    .qty-btn:hover{border-color:var(--terracotta)}
+    .qty-value{min-width:1.5rem;text-align:center;font-weight:600}
+    .cart-remove-btn{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;text-decoration:underline}
+    .cart-remove-btn:hover{color:var(--terracotta)}
     .cart-summary{border-top:2px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:0.5rem}
     .cart-total{font-weight:700;display:flex;justify-content:space-between}
     .cart-subtotal,.cart-delivery-fee{display:flex;justify-content:space-between;color:var(--text-muted)}
@@ -480,6 +536,7 @@ export function renderHtmlTemplate(input: RenderHtmlTemplateInput): string {
       <a href="#products">Products</a>
       <a href="#market-dates">Markets</a>
       <a href="#book-event">Events</a>
+      <button class="nav-cart-btn" onclick="toggleCart()" aria-label="Open cart">Cart (<span id="cart-count">0</span>)</button>
     </div>
   </nav>
   <section id="about" class="story-section">
