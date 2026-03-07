@@ -1,6 +1,6 @@
 import { Tenant, Product, MarketDate, OperationalSlot } from '@dmercato/types';
 import { SeoMetadata, OgTags } from './seo';
-import { escapeHtml } from './escape';
+import { escapeHtml, escapeJsonLd } from './escape';
 
 interface RenderHtmlTemplateInput {
   tenant: Tenant;
@@ -19,7 +19,8 @@ function renderOgTags(ogTags: OgTags): string {
 }
 
 function renderJsonLd(jsonLd: Record<string, unknown>): string {
-  return `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  const safeJson = escapeJsonLd(JSON.stringify(jsonLd));
+  return `<script type="application/ld+json">${safeJson}</script>`;
 }
 
 function formatPrice(price: number, currency: string): string {
@@ -250,9 +251,18 @@ function renderCartScript(): string {
         var cart = getCart();
         var container = document.getElementById('cart-items');
         if(!container) return;
-        container.innerHTML = cart.map(function(item){
-          return '<div class="cart-item"><span>'+item.name+' x'+item.qty+'</span><span>$'+(item.price*item.qty/100).toFixed(2)+'</span></div>';
-        }).join('');
+        container.innerHTML = '';
+        cart.forEach(function(item){
+          var row = document.createElement('div');
+          row.className = 'cart-item';
+          var nameSpan = document.createElement('span');
+          nameSpan.textContent = item.name + ' x' + item.qty;
+          var priceSpan = document.createElement('span');
+          priceSpan.textContent = '$' + (item.price * item.qty / 100).toFixed(2);
+          row.appendChild(nameSpan);
+          row.appendChild(priceSpan);
+          container.appendChild(row);
+        });
         var subtotal = cart.reduce(function(s,i){ return s + i.price*i.qty; }, 0);
         var el = document.getElementById('cart-subtotal-value');
         if(el) el.textContent = '$'+(subtotal/100).toFixed(2);
