@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>dmercato | Adelaide</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;family=Cormorant+Garamond:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "serif": ["Cormorant Garamond", "serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        .text-huge {
+            font-size: clamp(4rem, 10vw, 8rem);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation (Modified from BottomNavBar style for Desktop context) -->
+<nav class="sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-primary/10">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">menu</span>
+<span class="font-bold tracking-tight text-lg">dmercato.com<span class="text-primary">/adelaide</span></span>
+</div>
+<div class="flex items-center gap-8">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Marketplace</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Saved</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Profile</a>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">search</span>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12 lg:py-24">
+<!-- Hero Header -->
+<header class="text-center mb-20">
+<h1 class="font-serif text-huge leading-none lowercase tracking-tighter mb-4">Adelaide</h1>
+<p class="text-primary font-medium tracking-widest uppercase text-xs">12 Artisanal Vendors</p>
+</header>
+<div class="flex flex-col lg:flex-row gap-16">
+<!-- Sidebar (Desktop) -->
+<aside class="w-full lg:w-48 shrink-0 space-y-12 hidden lg:block">
+<div>
+<h3 class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 dark:text-slate-500 mb-4">Other Cities</h3>
+<ul class="space-y-2 text-sm">
+<li><a class="hover:text-primary" href="#">Melbourne</a></li>
+<li><a class="hover:text-primary" href="#">Sydney</a></li>
+<li><a class="hover:text-primary" href="#">Brisbane</a></li>
+<li><a class="hover:text-primary" href="#">Perth</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 dark:text-slate-500 mb-4">Browse</h3>
+<ul class="space-y-2 text-sm">
+<li><a class="hover:text-primary" href="#">Curated Sets</a></li>
+<li><a class="hover:text-primary" href="#">New Arrivals</a></li>
+<li><a class="hover:text-primary" href="#">Seasonal Picks</a></li>
+</ul>
+</div>
+</aside>
+<div class="flex-1">
+<!-- Sticky Filter Bar -->
+<div class="sticky top-16 z-40 bg-background-light dark:bg-background-dark border-t border-b border-slate-200 dark:border-slate-800 py-4 mb-12">
+<div class="flex items-center gap-8 overflow-x-auto no-scrollbar whitespace-nowrap px-2">
+<a class="text-sm font-bold border-b-2 border-primary pb-1" href="#">All</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Food &amp; Drink</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Home &amp; Living</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Jewelry</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Fine Art</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Ceramics</a>
+</div>
+</div>
+<!-- Vendor Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+<!-- Vendor Card 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Handcrafted ceramic plates and bowls on wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtTekQrCchSdRKjWP1QNz75Whsm7DwfIdjb5HSnCiISDBJbjlTMz5zXBtUkp0aI1Hcbvnz5pu242a91sBvIzqw3uWZivyQtG2huw0vThW7ZsPRJagbUzdjmzhcKWD36EpTvIp69cn0tWYJot0CcUPswPOjV0dxU9lDSYwoqxe8246AEKZi6SY-aH-2VulnnsKO2SQDlhnT6sSvhwQnT2ox1jVIEzDZkMapiBHp-AeCpAz9e0QQLZ99EsyNhIMsDX9C8NYcWMxg_Ro"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">Luna Ceramics</h2>
+<p class="text-slate-500 text-sm mb-3">Home &amp; Decor</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor Card 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Artisanal sourdough bread loaves in a basket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnH-ymlezgMtu1YmzSXw_6YRaB8VAcGelQblDHr6a2vypzvLupcvnV-IrGmbZ1kU4Kp4s4_GLioo3jNYe2FiO8JwJ_R3jpA7Mc9S-H8Zs_KnUHt7f7h5j1LfhR-tiCguW-ff9uL5tmg8gknX5eg7k-iZB7yPWsEozZnbY6Wfho69wGz5bqzwCQ7trD24H4n_HRRBiTgGAmccaB80aAWUBljNIwuDA0wkLZyHJ0fEbqqrzB6ftMwshK3sFezatllD8680mRP8Fw0zw"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">Wild Flour Bakery</h2>
+<p class="text-slate-500 text-sm mb-3">Food &amp; Drink</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor Card 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist gold jewelry displayed on velvet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV7SewFRPZuA6h5-IMQGywGqWGJaQzZJh5EVRXYXZMIlr98jW_cLeSrhb4NJgctQQTBymkvjvil2Sy8SRi1qvx_3wjUFAnKmpI5CRKrb97HOijO9diuBCFZk_dpcE_o817eXgbAxePeCxzN7hDmcILQVTnZAUyO0HBFHTOltIyPEdfCItTqyvNSEgM9ZLZEYa1b8RlQSrgqcyh5X1vXE-WM84dN0DedrjL8Wv4NTm6Vdq6gO78qRhTEIon6LoNq1TmJndGhSgKuHY"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">Aura Studio</h2>
+<p class="text-slate-500 text-sm mb-3">Jewelry</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sun 13 Apr</p>
+</div>
+<!-- Vendor Card 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Locally harvested organic honey jars" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZUmxq81U44RjvhC7jRFsoiF7tqT1Ty00F9BCWAVIhoeWE642GNFpWjhBmqj_qDqpKEXlXajs5dRi-O1Q0nqf8AEOCcYWiO07B5TtU2U-Y1gR1T1mzC7g25xEDH9y8ZDCesR0JmLJ3I_B2XVPsXpusfoqLeoU4KsudaT2R9LeW4o0jtqdAKsvHPfR4NYshYup6VWDavBDtolhajHVTc0Ej0jUhgbusjBfVw3M3Zw3LcJU5mjsE22S6j2Ag2vseabP-LhIHELP7RT0"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">The Bee Keeper</h2>
+<p class="text-slate-500 text-sm mb-3">Food &amp; Drink</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor Card 5 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Abstract oil painting with earthy tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASZqubbts_UqjdbwUeFkbX7qxpvp1HeXAc9Y45VZHo3sHXtIil54aIQTJYBJTv1d7YKU3XB1gObzcy00BE_mR_Smb9OjKyQFS2W5OngwHN8pu0UP1kZTGTc_YysmNQDntAVtSdxiGrPRcTare3IoDghh2Qnn4kFNiIxwrpVUjDDpaFeiMPsovgt07HzT6E4JRBdCSL5hlgRVrWUpeGgeA8FEUXf56E_LZ4Ldb4alrLsgusPKI9uS_J7ej5GaHFZzq2LVm67audbDc"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">Elena Moretti</h2>
+<p class="text-slate-500 text-sm mb-3">Fine Art</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor Card 6 -->
+<div class="group cursor-pointer">
+<div class="aspect-square overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Hand poured botanical scented candles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtPeOZiunn36tSO00zz6BSKlkGMyZ6cUFx2o9FP5qWnNnmzPcxc56WUIDUwYJNMMdRN1dC8bWWiyfcDnBOmmh-UWXRIzo-LT0k7Q4nL2JTnKDRz0o_AG4ONCq8-TLyLaDV975de0lqO5NRQQypnAiDJIikENhEqkH8yMl_HZDQiV2EsIFyRTqIJBIOn8iPZn0ekb02ah36tIlYxnY1cWikdxUlokaWdDplsicsW5eEaLqXfFNjfzz9psskoTQp8FHZrueSWS9hHfA"/>
+</div>
+<h2 class="font-serif text-3xl mb-1">Terra Flora</h2>
+<p class="text-slate-500 text-sm mb-3">Home &amp; Living</p>
+<p class="text-primary text-xs font-semibold tracking-wider uppercase">Next market: Sun 13 Apr</p>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-24 mb-12 flex justify-center items-center gap-6 font-serif text-lg text-slate-400">
+<a class="hover:text-primary transition-colors" href="#">← Previous</a>
+<span class="flex gap-4">
+<a class="text-slate-900 dark:text-slate-100" href="#">1</a>
+<a class="hover:text-primary" href="#">2</a>
+<a class="hover:text-primary" href="#">3</a>
+</span>
+<a class="hover:text-primary transition-colors" href="#">Next →</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Map/Location Section (Minimal) -->
+<section class="max-w-7xl mx-auto px-6 mb-24">
+<div class="h-96 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 grayscale opacity-60">
+<img class="w-full h-full object-cover" data-alt="Minimal satellite view of Adelaide city grid" data-location="Adelaide, Australia" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyWpSntsTbqsNPp-k0JjiVw_GWIW5ymtWchskpRircDvV083GLAVt3Jc5nAB_LhpTfnoWlRwA8zBc2CFmTPeDI-vhMh6wLncqJQowkl7Ds7LzrdNGQ29PK5qUMYqHxqK-xPgHVRXpwdilYUwOH5s_1GR6-ixFj__MgRuARAmv4UPbqpgTjeUDs7bEKxHvOY6ac-RCwoi7i_mfxDHHmRfgml3hVhky4cv9HOWdybD-IPYAHloUuC8aQgmhmskkM2UZsB9Fe_98QycA"/>
+</div>
+<div class="mt-8 flex flex-col md:flex-row justify-between items-start gap-8">
+<div class="max-w-md">
+<h3 class="font-serif text-2xl mb-2">Central Market</h3>
+<p class="text-slate-500 text-sm">44-60 Gouger St, Adelaide SA 5000. Every Saturday and Sunday from 8:00 AM.</p>
+</div>
+<button class="bg-primary text-white px-8 py-3 rounded-full text-sm font-bold tracking-wide hover:opacity-90 transition-opacity">
+                Get Directions
+            </button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="border-t border-slate-200 dark:border-slate-800 py-12 bg-white dark:bg-background-dark/50">
+<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+<p class="text-xs text-slate-400 uppercase tracking-widest">© 2024 dmercato. Editorial design.</p>
+<div class="flex gap-8">
+<a class="text-xs text-slate-400 uppercase tracking-widest hover:text-primary" href="#">Instagram</a>
+<a class="text-xs text-slate-400 uppercase tracking-widest hover:text-primary" href="#">Terms</a>
+<a class="text-xs text-slate-400 uppercase tracking-widest hover:text-primary" href="#">Contact</a>
+</div>
+</div>
+</footer>
+<!-- Mobile Bottom Navigation (Hidden on large screens) -->
+<div class="lg:hidden fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center z-50">
+<a class="text-primary flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] uppercase font-bold">Home</span>
+</a>
+<a class="text-slate-400 flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] uppercase font-bold">Discover</span>
+</a>
+<a class="text-slate-400 flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">favorite</span>
+<span class="text-[10px] uppercase font-bold">Saved</span>
+</a>
+<a class="text-slate-400 flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] uppercase font-bold">Profile</span>
+</a>
+</div>
+</body></html>

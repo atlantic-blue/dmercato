@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dmercato Vendor Admin - Market Calendar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;family=Cormorant+Garamond:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "serif": ["Cormorant Garamond", "serif"],
+                        "sans-alt": ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="flex min-h-screen">
+<!-- Sidebar -->
+<aside class="w-64 bg-background-dark text-slate-100 flex flex-col border-r border-slate-800">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-10">
+<div class="size-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Dmercato logo abstract orange organic shape" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkL-BUuM-Jl4q2eb_kD8fX-uYZH8iqvcYPl1HCbx5359pjoZ8sjDqbhwy-dKP-KtAxe1lDeWdXUGT1c45kD_gI99E36neH-jOzsR2BScQUmdvNjTB4ppCmkephGgFqsY8kxRA41ArXnNwjyUgVbshspdvLRJbyEQORpUhQ0w5u_kJF1YATxkA-2uNRz0sZo7YNne3m_hlfSm9DUwIv-xqLHrKg1x0AdRHgrgUIhf5eEUhWkg0MoKlE6ocPdg4x7938yXWK7ZYjxxI"/>
+</div>
+<div>
+<h1 class="font-serif text-xl font-bold leading-none">Dmercato</h1>
+<p class="text-xs text-slate-400 uppercase tracking-wider">Vendor Admin</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-sm font-medium">Market Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium">Products</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-sm font-medium">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm font-medium">Profile</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-slate-800">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700">
+<img class="w-full h-full object-cover rounded-full" data-alt="Vendor profile picture smiling artisan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0AqXgDkqRXb0yUkggVHokz9KFU8c6Zo_2G1-ySmSU9zS_OVwKHtq7IM8N-T2UQfZdAezbH-wDFtUySMmR2oRqUp5Uwy6DzhOroFpYelLh7Nq4zxr9GFaE9XOLuUEqG7_3VXz9sTTLR8OUxk4ybGVdt0luWcNWDHhllnEM7KyExpr5gpXX8rKO5p2KyCyGAmrBohT7M8cwjvJI6lXw4nqnln2vjylSfCbWYhuM1dW802cdJcT5vhEuMCThUdwlFS0s_ZtJVOZwq7k"/>
+</div>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold truncate">Artisan Bakery Co.</p>
+<p class="text-[10px] text-slate-500 uppercase">Pro Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 max-w-5xl mx-auto px-8 py-12">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="font-serif text-5xl text-slate-900 dark:text-slate-100">Market dates</h2>
+</div>
+<a class="flex items-center gap-1 text-primary font-semibold hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Add date</span>
+</a>
+</div>
+<!-- List of Dates -->
+<div class="flex flex-col border-t border-slate-200 dark:border-slate-800">
+<!-- Row 1 -->
+<div class="group flex items-center py-6 border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+<div class="w-10 flex justify-center text-slate-300 dark:text-slate-700 cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 px-4">
+<h3 class="font-serif text-2xl text-slate-800 dark:text-slate-200">Sat 12 Apr 2026</h3>
+<p class="font-sans-alt text-sm text-slate-500 dark:text-slate-400">Spring Artisans Market • Downtown Square</p>
+</div>
+<div class="flex items-center gap-4 px-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="group flex items-center py-6 border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+<div class="w-10 flex justify-center text-slate-300 dark:text-slate-700 cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 px-4">
+<h3 class="font-serif text-2xl text-slate-800 dark:text-slate-200">Sun 13 Apr 2026</h3>
+<p class="font-sans-alt text-sm text-slate-500 dark:text-slate-400">Spring Artisans Market • Downtown Square</p>
+</div>
+<div class="flex items-center gap-4 px-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="group flex items-center py-6 border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+<div class="w-10 flex justify-center text-slate-300 dark:text-slate-700 cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 px-4">
+<h3 class="font-serif text-2xl text-slate-800 dark:text-slate-200">Sat 19 Apr 2026</h3>
+<p class="font-sans-alt text-sm text-slate-500 dark:text-slate-400">Weekend Farmers Market • East Side Riverwalk</p>
+</div>
+<div class="flex items-center gap-4 px-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="group flex items-center py-6 border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+<div class="w-10 flex justify-center text-slate-300 dark:text-slate-700 cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 px-4">
+<h3 class="font-serif text-2xl text-slate-800 dark:text-slate-200">Sat 26 Apr 2026</h3>
+<p class="font-sans-alt text-sm text-slate-500 dark:text-slate-400">Community Garden Expo • North Park</p>
+</div>
+<div class="flex items-center gap-4 px-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Collapse -->
+<div class="mt-12">
+<button class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors group">
+<span class="material-symbols-outlined text-sm transition-transform group-hover:translate-y-0.5">expand_more</span>
+<span class="text-sm font-semibold uppercase tracking-widest">Past dates</span>
+</button>
+</div>
+</main>
+</div>
+</body></html>

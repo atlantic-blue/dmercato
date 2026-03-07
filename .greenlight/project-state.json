@@ -1,0 +1,12 @@
+{
+  "overview": {
+    "value_prop": "Multi-tenant marketplace and website platform for market vendors — each vendor gets a page at dmercato.com/{slug} as both standalone website and marketplace listing",
+    "stack": "TypeScript, AWS Lambda (Node 20.x arm64), DynamoDB, API Gateway, CloudFront, S3, SES, Terraform, Jest, React + Vite",
+    "mode": "yolo"
+  },
+  "session": {
+    "last_session": "2026-03-06T23:00:00.000Z",
+    "resume_file": null
+  },
+  "blockers": []
+}

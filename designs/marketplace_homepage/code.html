@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="it"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&amp;family=Public+Sans:wght@300;400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13", // Terracotta-ish primary
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "serif": ["Cormorant Garamond", "serif"],
+                        "helvetica": ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .serif-text { font-family: 'Cormorant Garamond', serif; }
+        .helvetica-nav { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<!-- Navigation -->
+<nav class="sticky top-0 z-50 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<h1 class="serif-text text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Dmercato</h1>
+<div class="hidden md:flex items-center space-x-8">
+<a class="helvetica-nav text-[10px] uppercase tracking-[0.2em] font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Explore</a>
+<a class="helvetica-nav text-[10px] uppercase tracking-[0.2em] font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">For Vendors</a>
+<a class="helvetica-nav text-[10px] uppercase tracking-[0.2em] font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors border-l border-slate-300 dark:border-slate-700 pl-8" href="#">Sign In</a>
+</div>
+<button class="md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative border-b border-slate-200 dark:border-slate-800">
+<div class="flex flex-col lg:flex-row min-h-[80vh]">
+<div class="w-full lg:w-1/2 p-8 lg:p-24 flex flex-col justify-center">
+<h1 class="serif-text text-[72px] lg:text-[96px] leading-[0.9] font-light mb-8 text-slate-900 dark:text-white">
+                    The market.<br/>Online.
+                </h1>
+<p class="serif-text italic text-xl lg:text-2xl text-slate-600 dark:text-slate-400 mb-12">
+                    Discover independent market vendors in your city
+                </p>
+<div class="max-w-md">
+<div class="flex items-center border border-slate-400 dark:border-slate-600 p-4">
+<span class="material-symbols-outlined text-slate-400 mr-3">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full serif-text text-lg italic placeholder:text-slate-400" placeholder="Enter your city" type="text"/>
+<button class="helvetica-nav text-[10px] uppercase tracking-widest font-bold text-primary">Search</button>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-1/2 h-[50vh] lg:h-auto bg-cover bg-center" data-alt="Traditional open air market stall with fresh produce" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoLC5AISHQMTCL8QSud1FDoKOqBFoHeZjnFWYEaD4Zwp1C_BlRssYMUyuMifHY0gMNeJQgCuEIQgcpVmZS8w7npONh2gx46MwEGiHJtj6CMCF38a0XtwCArtiyMLDdxMoQ2s33sUKKQzGuCnfSvXdAD1h4ShtQRZpVFlkT-sXKbG41iuumEAMNhxBiqiwEJIPsdjpW1FqQj7l9Mu9MPsRrIjuznwd6mq838Pyc2gGOD-5gXy_0iC-MTCj_hIBy74LGQqMMLbzxZEQ')">
+</div>
+</div>
+</header>
+<!-- Cities Section -->
+<section class="py-20 px-6 max-w-7xl mx-auto">
+<h3 class="helvetica-nav text-[11px] uppercase tracking-[0.3em] text-slate-400 mb-12">Cities</h3>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+<!-- City Card 1 -->
+<div class="relative aspect-square group overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10"></div>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Aerial view of Rome landscape" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-0xvj1_y57wn1h4Dag8FHZSm5aeePOHc7jgTZyr8fvnOxusVn0PH3YpiYenfuaierxX6JBSe__APS1k-z_v02WAx8GFuEzbQBJqCicP58pv7rQHtmAPJbZh9ooYGCUH3V7bNLDjh_FuvZ-_ZDbDfVeChQAjCg-rNw4ng3VL1EE0v-wJrpBaYCpA1GnGdGQGhh4aTxrt5whNQpWYyLqpTIoszj9JAaotNdlHTEVJEkP81JbXi71hokuiOTedoyuqhYUYF-D-EP0w8"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center">
+<p class="serif-text text-3xl text-white font-light italic">Rome</p>
+</div>
+</div>
+<!-- City Card 2 -->
+<div class="relative aspect-square group overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10"></div>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Venice canal and buildings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tsj_9EaO09XD8C1AOvoht-2JtOXv9dNhAoGoR_E02gz4oLTXW_i8-vImFeuhFCbSoRwffj2CKX44aXyh2apeUJy5BfJ_GklZP-njrRh-GIc1V-6Jst80kCNRXKa7D0cO81rLdjLnHivKeII5W7mHqO7-742YrnHwQWatFGhCayLzTtAQNuX-zJEF5BYh1p-B7528waChlRDroqdHg-K2-HuVd08Qr68whnnljQ25JcqVrSReUPPPkj_zvjPsokAOvkAWzzb-rls"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center">
+<p class="serif-text text-3xl text-white font-light italic">Venice</p>
+</div>
+</div>
+<!-- City Card 3 -->
+<div class="relative aspect-square group overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10"></div>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Florence duomo at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXA5L-GpN9GtmEKGjSzfQOe-0l39ER0UPClf0SR2UYYvHv_uxQjzJOPwXaPQLr982xdNJJ3PlXZYuv2QAzGr7qCkzUym3RIjUAj4V0lA02O1DC7pkm3Qb7RO4pbAXoLDdJPTHOjuOF8tYRMvDZy6nW8yJLv44bbzNCO7aiQM8GBy3fR4Xqw-BvHdWy_eZEoXKqZvZ3PCgJjJoh6ehG0cGLVLStMhI1jiBORTlw0Wz_j5g27IB7zpvZtae5YRTyoMp_z3RTIXj0wC4"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center">
+<p class="serif-text text-3xl text-white font-light italic">Florence</p>
+</div>
+</div>
+<!-- City Card 4 -->
+<div class="relative aspect-square group overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10"></div>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Milan gallery architecture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA60ziwLSThpgOMeOxDmOn9LyX3rY2l1z4HMd-aqA2ENUOS8iclYQmcLAupSBrhQrw2wezP2wi4Tz3Vr-hpOp8wLQDregF_7HTnWix4RWyq19v9NzEa27F6_svhcuxFDlF1O6WSFYj63ybehQnf6ZmvDv9AKnULQpLbi0tKDlaMxW4q4-rCsHcGm5NQic9IYX3pi3LFPjka51lSIkQRY6qP4EGbyQQ6sbmfw-NhWicEnuXXq5ePgUvitQyCW0Bb5lKRLfoawiD077c"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center">
+<p class="serif-text text-3xl text-white font-light italic">Milan</p>
+</div>
+</div>
+<!-- City Card 5 -->
+<div class="relative aspect-square group overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10"></div>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Naples coastal street" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0hjGDD_v0080guyM6goG5-77jYfHkUuN6vQhQTItbZsau5pIjQQedTb3RYdsmhps8Tn3HQfeT0nyUVhWLhY6bz4o61Xk7rubBpjL_rQyZjSZ9V_537shn75aFtql_Nt6SXujuBi4xibOixxgdt9RyJyf3vCGr7eyVM4YhFxSxNM2rdklqOjrbqACEu6iXbzURsi9wKYh60Vt1vvSTgrUagg1C6YcEYOk6valpPkTWCb-06xJ8LjhsCLv7UttSqRZit_g88IkJ27c"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center">
+<p class="serif-text text-3xl text-white font-light italic">Naples</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Categories Row -->
+<div class="border-y border-slate-200 dark:border-slate-800 py-6">
+<div class="max-w-7xl mx-auto px-6 overflow-x-auto">
+<div class="flex items-center justify-center space-x-6 whitespace-nowrap serif-text italic text-lg text-slate-600 dark:text-slate-400">
+<a class="hover:text-primary" href="#">Food &amp; Drink</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Crafts</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Plants</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Home</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Jewellery</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Vintage</a>
+<span class="text-primary opacity-50">•</span>
+<a class="hover:text-primary" href="#">Bakery</a>
+</div>
+</div>
+</div>
+<!-- Featured Vendors -->
+<section class="py-24 px-6 max-w-7xl mx-auto">
+<h3 class="helvetica-nav text-[11px] uppercase tracking-[0.3em] text-slate-400 mb-12">Featured Vendors</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<!-- Vendor 1 -->
+<div>
+<img class="w-full aspect-square object-cover mb-6" data-alt="Artisanal cheese stall layout" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzccaDRu5YmT7CbMGSYwUFDZ5G2ziRNKcBTsjxUQKMUQJ1_XPGJQ_516x1YCklbVU-7G5tCzXD9zPuVx2ypSaVJM20VLscplX5PdVsOZNwAAGpKiE8T-_RVIkjh5p3z-X-Xuq5GgA84a-yWHK7eUXD1UYi3ho-fNgmVInhWX_i_e289Xk0FRFDoiDj_x-Et1tdcvPMZBUJ6oO8Wzuj1WQPVfsbmiiXIaVlcCkpvr9__xnRznqI7KOksTlY5MoUsCB06qeeXbZGxfM"/>
+<h4 class="serif-text text-2xl mb-1 text-slate-900 dark:text-white">Formaggi del Campo</h4>
+<p class="helvetica-nav text-[10px] uppercase tracking-widest text-primary font-bold">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor 2 -->
+<div>
+<img class="w-full aspect-square object-cover mb-6" data-alt="Ceramic pottery display" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSTybVRTCpRZWrA0NXWx07eedSSftV_1hl0B4ZshVx0tdq1ZSefw-R8szD_K3rbUlnbvrvYptZdrXU9aRaDNB1Z8wvcb2PtjY0gVjgMk8B9gbxwmdHqm1Aro5o4c_iieOqinDMkPD-IRBfD2VWISunI53W-SBTTRVaT41yy49fgyT-yj9N7LJpY86rvUXa7UANDwGwQxoL26Mlv2-Ad1k7c0qd19PXNQZJjcp4DI6c2vEx2so_9uoY-JLSqvTZHx9lAkzNVPlFTr4"/>
+<h4 class="serif-text text-2xl mb-1 text-slate-900 dark:text-white">Terra Cotta Artisans</h4>
+<p class="helvetica-nav text-[10px] uppercase tracking-widest text-primary font-bold">Next market: Sat 12 Apr</p>
+</div>
+<!-- Vendor 3 -->
+<div>
+<img class="w-full aspect-square object-cover mb-6" data-alt="Fresh florist flower selection" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-vVKoqphh7gjn3ndsJO4jCfiCNxdzh9zrtCMo4bZSY_2UDI9seGSGG1gBwb8EfXExex2DKgKKieBOJLnkPMpehjNBWyPTjJNazqsLnnR4z_Sxm6ypQ-IfyL4G-9wpFXcgtvpstMngF9KvxKtsT0T7jfRP_ld-e3enGRNmBGTdUEni7MrySspbQb7JxpVf5IXpL-Xo4SKkduzyobCEn-P8R2zX1GIu1qmuiy7ZMtJ2y17Gu8qScmZodLjO34wxBMh6uhPDAKa3jOc"/>
+<h4 class="serif-text text-2xl mb-1 text-slate-900 dark:text-white">Fiori di Maggio</h4>
+<p class="helvetica-nav text-[10px] uppercase tracking-widest text-primary font-bold">Next market: Sun 13 Apr</p>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="bg-white dark:bg-slate-900/50 py-24 px-6 border-y border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto">
+<h3 class="helvetica-nav text-[11px] uppercase tracking-[0.3em] text-slate-400 mb-16 text-center">How It Works</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+<div class="text-center">
+<span class="serif-text text-7xl font-light text-primary block mb-6">01</span>
+<h5 class="serif-text text-xl mb-4 italic">Discover</h5>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">Browse the finest independent vendors across Italy's most vibrant street markets.</p>
+</div>
+<div class="text-center">
+<span class="serif-text text-7xl font-light text-primary block mb-6">02</span>
+<h5 class="serif-text text-xl mb-4 italic">Connect</h5>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">Follow your favorite stalls and receive notifications for their next market appearance.</p>
+</div>
+<div class="text-center">
+<span class="serif-text text-7xl font-light text-primary block mb-6">03</span>
+<h5 class="serif-text text-xl mb-4 italic">Purchase</h5>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">Order for local pickup at the market or have artisan goods delivered directly to your home.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="py-12 px-6 border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-slate-400">
+<p class="serif-text text-xl italic mb-6 md:mb-0 text-slate-900 dark:text-white">Dmercato</p>
+<div class="flex space-x-8">
+<a class="helvetica-nav text-[10px] uppercase tracking-widest hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="helvetica-nav text-[10px] uppercase tracking-widest hover:text-primary transition-colors" href="#">Terms</a>
+<a class="helvetica-nav text-[10px] uppercase tracking-widest hover:text-primary transition-colors" href="#">Instagram</a>
+<a class="helvetica-nav text-[10px] uppercase tracking-widest hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<p class="helvetica-nav text-[9px] uppercase tracking-[0.2em] mt-6 md:mt-0">© 2024 Dmercato</p>
+</div>
+</footer>
+</body></html>

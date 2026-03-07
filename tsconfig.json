@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared/types" },
+    { "path": "packages/shared/db" },
+    { "path": "packages/shared/stripe" },
+    { "path": "packages/lambdas/renderer" },
+    { "path": "packages/lambdas/api" },
+    { "path": "packages/lambdas/auth" },
+    { "path": "packages/lambdas/sitemap" },
+    { "path": "packages/lambdas/cache-invalidator" },
+    { "path": "packages/lambdas/domain-provisioner" },
+    { "path": "packages/lambdas/stripe-webhook" }
+  ]
+}

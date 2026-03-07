@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&amp;family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#ec5b13", // Terracotta
+                "background-light": "#f8f6f6",
+                "background-dark": "#221610",
+              },
+              fontFamily: {
+                "display": ["Public Sans"],
+                "serif": ["Cormorant Garamond", "serif"],
+                "sans": ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .bottom-border-input {
+            border: none;
+            border-bottom: 1px solid #E8E8E5;
+            background: transparent;
+            border-radius: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .bottom-border-input:focus {
+            outline: none;
+            box-shadow: none;
+            border-bottom: 1px solid #ec5b13;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<!-- Toast Notification -->
+<div class="fixed top-0 left-0 right-0 z-50">
+<div class="bg-primary/10 border-b border-primary/20 py-2 text-center">
+<p class="text-primary text-xs font-medium uppercase tracking-widest">Changes saved — your page is live</p>
+</div>
+</div>
+<div class="flex h-screen pt-10 overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full">
+<div class="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center">
+<div class="size-16 bg-slate-100 mb-4 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up of a luxury Italian pastry" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW1HqIXxrqZblZ5NZ62YFVSR04eKSyIcZRb1f_LsJZKddtXD9WTtl2xn3SQA4qC_LQxtreAblzED935r3gOJKKc5OQamF7MFySpAPQGrimpEqZvl3iKrNGLF6yS4BeA4o6qTJSExl0skTkNij6Tjn3RAwrpFTi1wmjFy8POAblGUNbEGLMuBdgmds160vPZQtiK96QvNzc6o6C9HCIEBeExdR23wxhwujfcoqgOy1gwyNn_JhlRiHJPGACTAAh1zUbn2uV6-DNODs"/>
+</div>
+<h2 class="font-serif text-2xl font-semibold text-slate-900 dark:text-white leading-none mb-1">Sweet Sin</h2>
+<p class="font-sans text-[10px] uppercase tracking-tighter text-slate-400">dmercato.com/sweetsin</p>
+</div>
+<nav class="flex-1 py-6">
+<ul class="space-y-1">
+<li class="border-l-2 border-primary bg-primary/5">
+<a class="flex items-center px-8 py-3 gap-3 text-primary font-medium" href="#">
+<span class="material-symbols-outlined text-xl">account_circle</span>
+<span class="text-sm">Profile</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+<span class="text-sm font-light">Market calendar</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">package_2</span>
+<span class="text-sm font-light">Products</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">chat_bubble</span>
+<span class="text-sm font-light">Quote requests</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+<span class="text-sm font-light">Orders</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">storefront</span>
+<span class="text-sm font-light">Shop setup</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">language</span>
+<span class="text-sm font-light">Domain</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-8 py-3 gap-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-light">Settings</span>
+</a>
+</li>
+</ul>
+</nav>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-white dark:bg-background-dark p-12 lg:px-24">
+<div class="max-w-4xl mx-auto">
+<header class="mb-16">
+<h1 class="font-serif text-5xl font-medium mb-2">Profile</h1>
+<div class="h-px w-12 bg-primary"></div>
+</header>
+<form class="space-y-16 pb-24">
+<!-- Basic Info Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<div class="space-y-12">
+<div>
+<label class="block text-[10px] uppercase tracking-widest text-slate-400 mb-2">Brand Name</label>
+<input class="bottom-border-input w-full text-lg font-serif" type="text" value="Sweet Sin"/>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block text-[10px] uppercase tracking-widest text-slate-400">Tagline</label>
+<span class="text-[10px] text-slate-300">42 / 80</span>
+</div>
+<input class="bottom-border-input w-full font-light italic text-slate-600" placeholder="Enter your tagline" type="text" value="Artisanal Italian Pâtisserie in Milan"/>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block text-[10px] uppercase tracking-widest text-slate-400">Story</label>
+<span class="text-[10px] text-slate-300">240 / 500</span>
+</div>
+<textarea class="bottom-border-input w-full font-light leading-relaxed text-slate-600 resize-none" rows="6">Our story begins in the heart of Lombardy, where recipes passed down through generations meet modern culinary artistry. Every pastry is a testament to the Italian commitment to quality, flavor, and elegance.</textarea>
+</div>
+</div>
+<!-- Imagery Section -->
+<div class="space-y-8">
+<div>
+<label class="block text-[10px] uppercase tracking-widest text-slate-400 mb-4">Primary Photo</label>
+<div class="aspect-video border-2 border-dashed border-[#E8E8E5] flex flex-col items-center justify-center bg-slate-50 group cursor-pointer hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-slate-300 text-3xl mb-2">add_a_photo</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-400 font-light">Drop photo here</span>
+</div>
+</div>
+<div>
+<label class="block text-[10px] uppercase tracking-widest text-slate-400 mb-4">Gallery</label>
+<div class="grid grid-cols-4 gap-2">
+<div class="aspect-square bg-slate-100 relative group overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Chocolate cake on a white plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDh9AGAg0M7PWxSzi4sBlqAgcWh6O06fgUCYs1SnZsY4hH6WUwghsAxTanmFIcBOwYQP20Muo7-P8ib42wETJt9DV5QhP5DaHooAso2w8AONlUcHNgPH2dUnbKNSnK3VYGhiwxx4PzMJMOQC96pxIfsXBk9nxpNbnTVIFD4SPdTRUgVmY43XEwvV-MspXwqFn3tpNXMXIeVRw0E_wMMS1gLOjTm1soZ3juKJOSaSQsmgviJcJsDSVMntjYtFbR8X7nuj-DgMmQuza4"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">delete</span>
+</div>
+</div>
+<div class="aspect-square bg-slate-100 relative group overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Classic Italian desserts arrangement" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSI9d2Nc9h9e17JZNCdhfmrNgSByIL428GTPsvmTJj5HU15tG0Z_Ownd-N8qWr3djzfTbTPaEvH4CXP_qVJO7NKtTF82k1rDBWzAIwU5LtuejIJNb6ihOvmTCqu9HLMrdbxr3MfTdpfm2yx22YLd4sumupDR6oe5FJ8aO2DwxHFXlDYRNaN2Y7rLg8CTi6vXa0Jkza8FDBpAQ2e5cNIC96pRCL84zhzoVjheyGP5LrMqPbjIzEt-S-p_D_vO0lG_VLHFnAFYdIcGE"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">delete</span>
+</div>
+</div>
+<div class="aspect-square bg-slate-100 border-2 border-dashed border-[#E8E8E5] flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-slate-300">add</span>
+</div>
+<div class="aspect-square bg-slate-100 border-2 border-dashed border-[#E8E8E5] flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-slate-300">add</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Details Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 border-t border-slate-100">
+<div>
+<label class="block text-[10px] uppercase tracking-widest text-slate-400 mb-4">Location &amp; Categories</label>
+<div class="mb-8">
+<select class="bottom-border-input w-full font-light text-slate-600 cursor-pointer appearance-none">
+<option>Milan, Italy</option>
+<option>Florence, Italy</option>
+<option>Rome, Italy</option>
+<option>Venice, Italy</option>
+</select>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-1.5 border border-primary text-primary text-[10px] uppercase tracking-widest font-medium" type="button">Bakery</button>
+<button class="px-4 py-1.5 border border-slate-200 text-slate-400 text-[10px] uppercase tracking-widest font-light hover:border-primary hover:text-primary transition-colors" type="button">Desserts</button>
+<button class="px-4 py-1.5 border border-primary text-primary text-[10px] uppercase tracking-widest font-medium" type="button">Wedding</button>
+<button class="px-4 py-1.5 border border-slate-200 text-slate-400 text-[10px] uppercase tracking-widest font-light hover:border-primary hover:text-primary transition-colors" type="button">Artisanal</button>
+</div>
+</div>
+<div>
+<label class="block text-[10px] uppercase tracking-widest text-slate-400 mb-4">Social Presence</label>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="text-[10px] w-20 uppercase tracking-widest text-slate-400 font-light">Instagram</span>
+<input class="bottom-border-input flex-1 font-light text-sm" placeholder="@username" type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] w-20 uppercase tracking-widest text-slate-400 font-light">Facebook</span>
+<input class="bottom-border-input flex-1 font-light text-sm" placeholder="facebook.com/..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] w-20 uppercase tracking-widest text-slate-400 font-light">TikTok</span>
+<input class="bottom-border-input flex-1 font-light text-sm" placeholder="@username" type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] w-20 uppercase tracking-widest text-slate-400 font-light">Website</span>
+<input class="bottom-border-input flex-1 font-light text-sm" placeholder="www.yoursite.it" type="text"/>
+</div>
+</div>
+</div>
+</section>
+<footer class="pt-8">
+<button class="w-full bg-slate-900 text-white font-sans py-5 uppercase tracking-[0.2em] text-sm hover:bg-black transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-slate-900" type="submit">
+                            Save Changes
+                        </button>
+<p class="text-center mt-6 text-[10px] uppercase tracking-widest text-slate-300">Last updated today at 10:24 AM</p>
+</footer>
+</form>
+</div>
+</main>
+</div>
+</body></html>

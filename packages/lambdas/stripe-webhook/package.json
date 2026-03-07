@@ -1,0 +1,16 @@
+{
+  "name": "@dmercato/stripe-webhook",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "@dmercato/types": "*",
+    "@dmercato/db": "*",
+    "@dmercato/stripe": "*"
+  }
+}

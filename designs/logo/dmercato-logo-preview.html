@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #F8F8F6; font-family: 'Helvetica Neue', sans-serif; padding: 60px; }
+
+  .section { margin-bottom: 64px; }
+  .label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #9A9590; margin-bottom: 24px; }
+
+  .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* The mark */
+  .mark {
+    position: relative;
+    width: 44px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+
+  /* Wordmark */
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .wordmark-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 52px;
+    line-height: 1;
+    color: #1A1A18;
+    letter-spacing: -0.5px;
+  }
+
+  .wordmark-rule {
+    height: 1px;
+    background: #E8E8E5;
+    margin: 5px 0 5px;
+  }
+
+  .wordmark-tagline {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 8px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9A9590;
+  }
+
+  /* Dark variant */
+  .dark {
+    background: #1A1A18;
+    padding: 48px;
+    display: inline-block;
+  }
+  .dark .wordmark-text { color: #FFFFFF; }
+  .dark .wordmark-rule { background: rgba(255,255,255,0.15); }
+  .dark .wordmark-tagline { color: rgba(255,255,255,0.35); }
+
+  /* Small/icon variant */
+  .icon-only {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  /* Stacked variant */
+  .stacked {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .stacked .wordmark-text { font-size: 42px; }
+  .stacked .wordmark-rule { width: 100%; }
+
+  .divider {
+    height: 1px;
+    background: #E8E8E5;
+    margin: 48px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- PRIMARY LOGO — LIGHT -->
+<div class="section">
+  <div class="label">Primary — Light</div>
+  <div style="background: #FFFFFF; padding: 48px; display: inline-block;">
+    <div class="logo-wrap">
+
+      <!-- SVG Mark -->
+      <svg width="44" height="64" viewBox="0 0 44 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer D shape — market arch -->
+        <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z"
+              fill="none"
+              stroke="#1A1A18"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+              stroke-linecap="round"/>
+        <!-- Terracotta vertical accent -->
+        <line x1="4" y1="14" x2="4" y2="50"
+              stroke="#C4622D"
+              stroke-width="2.5"
+              stroke-linecap="round"/>
+        <!-- Terracotta dot -->
+        <circle cx="29" cy="32" r="3" fill="#C4622D"/>
+      </svg>
+
+      <div class="wordmark">
+        <div class="wordmark-text">Dmercato</div>
+        <div class="wordmark-rule"></div>
+        <div class="wordmark-tagline">Market vendors online</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIMARY LOGO — DARK -->
+<div class="section">
+  <div class="label">Primary — Dark</div>
+  <div class="dark">
+    <div class="logo-wrap">
+      <svg width="44" height="64" viewBox="0 0 44 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z"
+              fill="none"
+              stroke="#FFFFFF"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+              stroke-linecap="round"/>
+        <line x1="4" y1="14" x2="4" y2="50"
+              stroke="#C4622D"
+              stroke-width="2.5"
+              stroke-linecap="round"/>
+        <circle cx="29" cy="32" r="3" fill="#C4622D"/>
+      </svg>
+      <div class="wordmark">
+        <div class="wordmark-text">Dmercato</div>
+        <div class="wordmark-rule"></div>
+        <div class="wordmark-tagline">Market vendors online</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MARK ONLY — SIZES -->
+<div class="section">
+  <div class="label">Mark — Icon only</div>
+  <div style="background: #FFFFFF; padding: 32px; display: inline-flex; align-items: flex-end; gap: 40px;">
+
+    <!-- 64px -->
+    <svg width="44" height="64" viewBox="0 0 44 64" fill="none">
+      <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z" fill="none" stroke="#1A1A18" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="4" y1="14" x2="4" y2="50" stroke="#C4622D" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="29" cy="32" r="3" fill="#C4622D"/>
+    </svg>
+
+    <!-- 48px -->
+    <svg width="33" height="48" viewBox="0 0 44 64" fill="none">
+      <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z" fill="none" stroke="#1A1A18" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="4" y1="14" x2="4" y2="50" stroke="#C4622D" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="29" cy="32" r="3" fill="#C4622D"/>
+    </svg>
+
+    <!-- 32px -->
+    <svg width="22" height="32" viewBox="0 0 44 64" fill="none">
+      <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z" fill="none" stroke="#1A1A18" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="4" y1="14" x2="4" y2="50" stroke="#C4622D" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="29" cy="32" r="3.5" fill="#C4622D"/>
+    </svg>
+
+    <!-- 20px -->
+    <svg width="14" height="20" viewBox="0 0 44 64" fill="none">
+      <path d="M 4 60 L 4 4 Q 40 4 40 32 Q 40 60 4 60 Z" fill="none" stroke="#1A1A18" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="4" y1="14" x2="4" y2="50" stroke="#C4622D" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="29" cy="32" r="4.5" fill="#C4622D"/>
+    </svg>
+
+  </div>
+</div>
+
+<!-- WORDMARK ONLY — NO MARK -->
+<div class="section">
+  <div class="label">Wordmark only — compact</div>
+  <div style="background: #FFFFFF; padding: 32px 48px; display: inline-block;">
+    <div style="font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 48px; color: #1A1A18; letter-spacing: -0.5px; line-height: 1;">
+      D<span style="color: #C4622D;">m</span>ercato
+    </div>
+  </div>
+</div>
+
+<!-- ITALIC VARIANT -->
+<div class="section">
+  <div class="label">Italic variant</div>
+  <div style="background: #FFFFFF; padding: 32px 48px; display: inline-block;">
+    <div style="font-family: 'Cormorant Garamond', serif; font-weight: 300; font-style: italic; font-size: 48px; color: #1A1A18; letter-spacing: -0.5px; line-height: 1;">
+      Dmercato
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
