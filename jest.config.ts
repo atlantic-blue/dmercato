@@ -5,6 +5,7 @@ const config: Config = {
   testEnvironment: 'node',
   roots: ['<rootDir>/packages', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
+  setupFiles: ['<rootDir>/tests/fixtures/dynamodb-mock.ts'],
   moduleNameMapper: {
     '^@dmercato/types$': '<rootDir>/packages/shared/types/src',
     '^@dmercato/db$': '<rootDir>/packages/shared/db/src',
