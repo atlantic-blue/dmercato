@@ -124,11 +124,15 @@ async function sendEmails(
     vendorName: metadata.vendorSlug,
   }).catch(() => {});
 
-  await sendVendorOrderNotificationEmail({
-    vendorEmail,
-    vendorName: metadata.vendorSlug,
-    order: orderData,
-  }).catch(() => {});
+  const baseUrl = process.env.BASE_URL ?? '';
+  const isProduction = baseUrl === 'https://dmercato.com';
+  if (isProduction) {
+    await sendVendorOrderNotificationEmail({
+      vendorEmail,
+      vendorName: metadata.vendorSlug,
+      order: orderData,
+    }).catch(() => {});
+  }
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
