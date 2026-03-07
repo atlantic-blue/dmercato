@@ -218,6 +218,14 @@ data "aws_iam_policy_document" "deploy" {
     ]
   }
 
+  # SSM — DescribeParameters requires wildcard resource
+  statement {
+    sid       = "SSMDescribe"
+    effect    = "Allow"
+    actions   = ["ssm:DescribeParameters"]
+    resources = ["*"]
+  }
+
   # Lambda — deploy functions (for future slices)
   statement {
     sid    = "Lambda"
