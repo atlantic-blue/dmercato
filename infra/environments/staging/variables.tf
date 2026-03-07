@@ -21,3 +21,21 @@ variable "domain_name" {
   type        = string
   default     = "staging.dmercato.com"
 }
+
+variable "stripe_secret_key" {
+  description = "Stripe secret API key"
+  type        = string
+  sensitive   = true
+}
+
+variable "stripe_webhook_secret" {
+  description = "Stripe webhook signing secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "platform_fee_percent" {
+  description = "Platform fee percentage for Stripe checkout"
+  type        = string
+  default     = "5"
+}

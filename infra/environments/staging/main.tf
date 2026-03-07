@@ -75,27 +75,39 @@ module "lambdas" {
 module "lambda_functions" {
   source = "../../modules/lambda-functions"
 
-  environment        = var.environment
-  project_name       = var.project_name
-  renderer_role_arn  = module.lambdas.renderer_role_arn
-  tenants_table_name = module.dynamodb.tenants_table_name
-  base_url           = var.domain_name != "" ? "https://${var.domain_name}" : "https://${module.cloudfront.distribution_domain_name}"
-  deploy_bucket_name = ""
+  environment             = var.environment
+  project_name            = var.project_name
+  renderer_role_arn       = module.lambdas.renderer_role_arn
+  api_role_arn            = module.lambdas.api_role_arn
+  stripe_webhook_role_arn = module.lambdas.stripe_webhook_role_arn
+  tenants_table_name      = module.dynamodb.tenants_table_name
+  orders_table_name       = module.dynamodb.orders_table_name
+  base_url                = var.domain_name != "" ? "https://${var.domain_name}" : "https://${module.cloudfront.distribution_domain_name}"
+  stripe_secret_key       = var.stripe_secret_key
+  stripe_webhook_secret   = var.stripe_webhook_secret
+  platform_fee_percent    = var.platform_fee_percent
+  deploy_bucket_name      = ""
 
   tags = local.common_tags
 }
 
 # -----------------------------------------------------------------------------
-# API Gateway (HTTP API routing to renderer Lambda)
+# API Gateway (HTTP API routing to Lambda functions)
 # -----------------------------------------------------------------------------
 module "api_gateway" {
   source = "../../modules/api-gateway"
 
-  environment            = var.environment
-  project_name           = var.project_name
-  renderer_function_name = module.lambda_functions.renderer_function_name
-  renderer_invoke_arn    = module.lambda_functions.renderer_invoke_arn
-  renderer_function_arn  = module.lambda_functions.renderer_function_arn
+  environment                  = var.environment
+  project_name                 = var.project_name
+  renderer_function_name       = module.lambda_functions.renderer_function_name
+  renderer_invoke_arn          = module.lambda_functions.renderer_invoke_arn
+  renderer_function_arn        = module.lambda_functions.renderer_function_arn
+  api_function_name            = module.lambda_functions.api_function_name
+  api_invoke_arn               = module.lambda_functions.api_invoke_arn
+  api_function_arn             = module.lambda_functions.api_function_arn
+  stripe_webhook_function_name = module.lambda_functions.stripe_webhook_function_name
+  stripe_webhook_invoke_arn    = module.lambda_functions.stripe_webhook_invoke_arn
+  stripe_webhook_function_arn  = module.lambda_functions.stripe_webhook_function_arn
 
   tags = local.common_tags
 }
@@ -132,6 +144,18 @@ module "dns" {
   project_name                           = var.project_name
   cloudfront_distribution_domain_name    = module.cloudfront.distribution_domain_name
   cloudfront_distribution_hosted_zone_id = "Z2FDTNDATAQYW2"
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# SES (email sending from dmercato.com)
+# -----------------------------------------------------------------------------
+module "ses" {
+  source = "../../modules/ses"
+
+  domain_name = "dmercato.com"
+  zone_domain = "dmercato.com"
 
   tags = local.common_tags
 }

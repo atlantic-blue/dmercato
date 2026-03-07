@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # HTTP API Gateway (v2)
-# Catch-all proxy routing to the renderer Lambda
+# Routes: GET/* -> renderer, POST /api/* -> API Lambda, POST /api/stripe/* -> webhook
 # -----------------------------------------------------------------------------
 resource "aws_apigatewayv2_api" "renderer" {
   name          = "${var.project_name}-${var.environment}"
@@ -12,11 +12,13 @@ resource "aws_apigatewayv2_api" "renderer" {
       "GET",
       "HEAD",
       "OPTIONS",
+      "POST",
     ]
     allow_headers = [
       "Content-Type",
       "Authorization",
       "X-Requested-With",
+      "Stripe-Signature",
     ]
     max_age = 3600
   }
@@ -61,7 +63,7 @@ resource "aws_apigatewayv2_stage" "default" {
 }
 
 # -----------------------------------------------------------------------------
-# Lambda proxy integration for the renderer
+# Integration: Renderer Lambda (GET pages)
 # -----------------------------------------------------------------------------
 resource "aws_apigatewayv2_integration" "renderer" {
   api_id                 = aws_apigatewayv2_api.renderer.id
@@ -72,7 +74,29 @@ resource "aws_apigatewayv2_integration" "renderer" {
 }
 
 # -----------------------------------------------------------------------------
-# Routes: root GET / and catch-all GET /{proxy+}
+# Integration: API Lambda (checkout, quotes, vendor updates)
+# -----------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "api" {
+  api_id                 = aws_apigatewayv2_api.renderer.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = var.api_invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "1.0"
+}
+
+# -----------------------------------------------------------------------------
+# Integration: Stripe Webhook Lambda
+# -----------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "stripe_webhook" {
+  api_id                 = aws_apigatewayv2_api.renderer.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = var.stripe_webhook_invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "1.0"
+}
+
+# -----------------------------------------------------------------------------
+# Routes: Renderer (GET)
 # -----------------------------------------------------------------------------
 resource "aws_apigatewayv2_route" "root" {
   api_id    = aws_apigatewayv2_api.renderer.id
@@ -87,12 +111,46 @@ resource "aws_apigatewayv2_route" "proxy" {
 }
 
 # -----------------------------------------------------------------------------
-# Lambda permission: allow API Gateway to invoke the renderer
+# Routes: API Lambda (POST)
 # -----------------------------------------------------------------------------
-resource "aws_lambda_permission" "api_gateway" {
+resource "aws_apigatewayv2_route" "checkout" {
+  api_id    = aws_apigatewayv2_api.renderer.id
+  route_key = "POST /api/checkout/sessions"
+  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+}
+
+# -----------------------------------------------------------------------------
+# Routes: Stripe Webhook (POST)
+# -----------------------------------------------------------------------------
+resource "aws_apigatewayv2_route" "stripe_webhook" {
+  api_id    = aws_apigatewayv2_api.renderer.id
+  route_key = "POST /api/stripe/webhook"
+  target    = "integrations/${aws_apigatewayv2_integration.stripe_webhook.id}"
+}
+
+# -----------------------------------------------------------------------------
+# Lambda permissions: allow API Gateway to invoke each Lambda
+# -----------------------------------------------------------------------------
+resource "aws_lambda_permission" "api_gateway_renderer" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = var.renderer_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.renderer.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "api_gateway_api" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.api_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.renderer.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "api_gateway_stripe_webhook" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.stripe_webhook_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.renderer.execution_arn}/*/*"
 }

@@ -437,6 +437,16 @@ data "aws_iam_policy_document" "stripe_webhook" {
   }
 
   statement {
+    sid    = "SESSendEmail"
+    effect = "Allow"
+    actions = [
+      "ses:SendEmail",
+      "ses:SendRawEmail",
+    ]
+    resources = ["arn:aws:ses:${var.aws_region}:${var.aws_account_id}:identity/*"]
+  }
+
+  statement {
     sid    = "SSMGetParameter"
     effect = "Allow"
     actions = [

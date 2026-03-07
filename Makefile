@@ -110,19 +110,52 @@ build: ## Build all packages
 build-lambdas: ## Bundle Lambda functions into dist/
 	@bash scripts/build-lambdas.sh
 
-.PHONY: deploy-lambda
-deploy-lambda: build-lambdas ## Build and update renderer Lambda code
+.PHONY: deploy-renderer
+deploy-renderer: build-lambdas ## Deploy renderer Lambda code
 	$(guard-prod)
 	aws lambda update-function-code \
 		--function-name $(PROJECT)-renderer-$(ENV) \
 		--zip-file fileb://dist/renderer.zip \
 		--region $(AWS_REGION) \
 		--no-cli-pager
-	@echo "Lambda code deployed to $(PROJECT)-renderer-$(ENV)"
+	@echo "Renderer deployed to $(PROJECT)-renderer-$(ENV)"
+
+.PHONY: deploy-api
+deploy-api: build-lambdas ## Deploy API Lambda code
+	$(guard-prod)
+	aws lambda update-function-code \
+		--function-name $(PROJECT)-api-$(ENV) \
+		--zip-file fileb://dist/api.zip \
+		--region $(AWS_REGION) \
+		--no-cli-pager
+	@echo "API deployed to $(PROJECT)-api-$(ENV)"
+
+.PHONY: deploy-webhook
+deploy-webhook: build-lambdas ## Deploy Stripe webhook Lambda code
+	$(guard-prod)
+	aws lambda update-function-code \
+		--function-name $(PROJECT)-stripe-webhook-$(ENV) \
+		--zip-file fileb://dist/stripe-webhook.zip \
+		--region $(AWS_REGION) \
+		--no-cli-pager
+	@echo "Webhook deployed to $(PROJECT)-stripe-webhook-$(ENV)"
+
+.PHONY: deploy-lambdas
+deploy-lambdas: deploy-renderer deploy-api deploy-webhook ## Deploy all Lambda functions
 
 .PHONY: seed
 seed: ## Seed Sweet Sin fixture data into DynamoDB
 	TENANTS_TABLE=$(PROJECT)-tenants-$(ENV) AWS_REGION=$(AWS_REGION) npx ts-node scripts/seed-tenant.ts
+
+.PHONY: setup-stripe
+setup-stripe: ## Store Stripe keys as Terraform variables (prompts for values)
+	@echo "Storing Stripe keys for ENV=$(ENV)..."
+	@read -p "Stripe Secret Key: " sk && \
+		read -p "Stripe Webhook Secret: " whs && \
+		echo "stripe_secret_key = \"$$sk\"" > $(TF_DIR)/stripe.auto.tfvars && \
+		echo "stripe_webhook_secret = \"$$whs\"" >> $(TF_DIR)/stripe.auto.tfvars && \
+		echo "Stripe keys written to $(TF_DIR)/stripe.auto.tfvars"
+	@echo "IMPORTANT: This file contains secrets. It is gitignored."
 
 # ─── Full Workflows ──────────────────────────────────────────────────────────
 
@@ -133,7 +166,7 @@ setup: install bootstrap tf-apply ## Full first-time setup: install + bootstrap 
 deploy-infra: tf-plan tf-apply ## Plan and apply Terraform for ENV
 
 .PHONY: deploy
-deploy: build-lambdas deploy-infra deploy-lambda ## Full deploy: build + infra + Lambda code
+deploy: build-lambdas deploy-infra deploy-lambdas ## Full deploy: build + infra + all Lambda functions
 
 .PHONY: ci
 ci: install typecheck lint test ## CI pipeline: install, typecheck, lint, test

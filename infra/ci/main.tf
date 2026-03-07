@@ -288,7 +288,7 @@ data "aws_iam_policy_document" "deploy" {
     resources = ["*"]
   }
 
-  # CloudWatch Logs (for Lambda log groups)
+  # CloudWatch Logs (Lambda + API Gateway log groups)
   statement {
     sid    = "CloudWatchLogs"
     effect = "Allow"
@@ -304,7 +304,71 @@ data "aws_iam_policy_document" "deploy" {
     resources = [
       "arn:aws:logs:us-east-1:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/dmercato-*",
       "arn:aws:logs:us-east-1:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/dmercato-*:*",
+      "arn:aws:logs:us-east-1:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/dmercato-*",
+      "arn:aws:logs:us-east-1:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/dmercato-*:*",
     ]
+  }
+
+  # Route 53 — DNS records for CloudFront, SES
+  statement {
+    sid    = "Route53"
+    effect = "Allow"
+    actions = [
+      "route53:GetHostedZone",
+      "route53:ListHostedZones",
+      "route53:ChangeResourceRecordSets",
+      "route53:GetChange",
+      "route53:ListResourceRecordSets",
+      "route53:ListTagsForResource",
+    ]
+    resources = ["*"]
+  }
+
+  # ACM — SSL certificates for CloudFront
+  statement {
+    sid    = "ACM"
+    effect = "Allow"
+    actions = [
+      "acm:RequestCertificate",
+      "acm:DescribeCertificate",
+      "acm:DeleteCertificate",
+      "acm:ListTagsForCertificate",
+      "acm:AddTagsToCertificate",
+      "acm:ListCertificates",
+    ]
+    resources = ["*"]
+  }
+
+  # SES — email domain identity and DKIM
+  statement {
+    sid    = "SES"
+    effect = "Allow"
+    actions = [
+      "ses:VerifyDomainIdentity",
+      "ses:VerifyDomainDkim",
+      "ses:GetIdentityVerificationAttributes",
+      "ses:GetIdentityDkimAttributes",
+      "ses:DeleteIdentity",
+      "ses:GetIdentityNotificationAttributes",
+      "ses:GetIdentityMailFromDomainAttributes",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudFront Functions
+  statement {
+    sid    = "CloudFrontFunctions"
+    effect = "Allow"
+    actions = [
+      "cloudfront:CreateFunction",
+      "cloudfront:DeleteFunction",
+      "cloudfront:DescribeFunction",
+      "cloudfront:GetFunction",
+      "cloudfront:ListFunctions",
+      "cloudfront:PublishFunction",
+      "cloudfront:UpdateFunction",
+    ]
+    resources = ["*"]
   }
 
   # STS — get caller identity (used by Terraform)

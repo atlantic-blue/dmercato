@@ -81,6 +81,16 @@ output "renderer_function_name" {
   value       = module.lambda_functions.renderer_function_name
 }
 
+output "api_function_name" {
+  description = "Name of the API Lambda function"
+  value       = module.lambda_functions.api_function_name
+}
+
+output "stripe_webhook_function_name" {
+  description = "Name of the Stripe webhook Lambda function"
+  value       = module.lambda_functions.stripe_webhook_function_name
+}
+
 output "api_gateway_endpoint" {
   description = "API Gateway invoke URL"
   value       = module.api_gateway.api_endpoint

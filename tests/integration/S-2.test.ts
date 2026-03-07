@@ -667,12 +667,12 @@ describe('SeedTenantData', () => {
       expect(seed.plan).toBe('active');
     });
 
-    it('should have stripeAccountId as null', () => {
-      expect(seed.stripeAccountId).toBeNull();
+    it('should have stripeAccountId set', () => {
+      expect(seed.stripeAccountId).toBe('acct_1PaE4OQjzqJXb0YW');
     });
 
-    it('should have stripeOnboardingComplete as false', () => {
-      expect(seed.stripeOnboardingComplete).toBe(false);
+    it('should have stripeOnboardingComplete as true', () => {
+      expect(seed.stripeOnboardingComplete).toBe(true);
     });
   });
 

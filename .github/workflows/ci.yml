@@ -36,8 +36,15 @@ jobs:
       - name: Test
         run: npm test -- --coverage
 
-      - name: Build
-        run: npm run build
+      - name: Build Lambdas
+        run: bash scripts/build-lambdas.sh
+
+      - name: Upload Lambda artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-zips
+          path: dist/*.zip
+          retention-days: 1
 
   deploy-staging:
     needs: lint-test-build
@@ -53,6 +60,16 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Build Lambdas
+        run: bash scripts/build-lambdas.sh
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -64,9 +81,38 @@ jobs:
 
       - name: Terraform plan
         working-directory: infra/environments/staging
-        run: terraform plan -out=tfplan -var="environment=staging" -var="project_name=dmercato" -var="aws_region=${{ env.AWS_REGION }}"
+        run: |
+          terraform plan -out=tfplan \
+            -var="environment=staging" \
+            -var="project_name=dmercato" \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="stripe_secret_key=${{ secrets.STRIPE_SECRET_KEY }}" \
+            -var="stripe_webhook_secret=${{ secrets.STRIPE_WEBHOOK_SECRET }}"
 
       - name: Terraform apply
         working-directory: infra/environments/staging
         run: terraform apply tfplan
 
+      - name: Deploy renderer Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-renderer-staging \
+            --zip-file fileb://dist/renderer.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
+
+      - name: Deploy API Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-api-staging \
+            --zip-file fileb://dist/api.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
+
+      - name: Deploy Stripe webhook Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-stripe-webhook-staging \
+            --zip-file fileb://dist/stripe-webhook.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager

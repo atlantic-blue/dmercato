@@ -12,27 +12,37 @@ echo "==> Cleaning dist/"
 rm -rf "${DIST_DIR}"
 mkdir -p "${DIST_DIR}"
 
-# ─── Renderer Lambda ─────────────────────────────────────────────────────────
+build_lambda() {
+  local name="$1"
+  local entry="$2"
 
-RENDERER_ENTRY="${REPO_ROOT}/packages/lambdas/renderer/src/index.ts"
-RENDERER_OUT="${DIST_DIR}/renderer/index.js"
+  local out_dir="${DIST_DIR}/${name}"
+  local out_file="${out_dir}/index.js"
 
-echo "==> Building renderer Lambda"
-npx esbuild "${RENDERER_ENTRY}" \
-  --bundle \
-  --platform=node \
-  --target=node20 \
-  --format=cjs \
-  --outfile="${RENDERER_OUT}" \
-  --external:@aws-sdk/* \
-  --minify=false \
-  --sourcemap \
-  --tsconfig="${REPO_ROOT}/tsconfig.base.json"
+  echo "==> Building ${name} Lambda"
+  npx esbuild "${entry}" \
+    --bundle \
+    --platform=node \
+    --target=node20 \
+    --format=cjs \
+    --outfile="${out_file}" \
+    --external:@aws-sdk/* \
+    --minify=false \
+    --sourcemap \
+    --tsconfig="${REPO_ROOT}/tsconfig.base.json"
 
-echo "==> Packaging renderer.zip"
-(cd "${DIST_DIR}/renderer" && zip -qr "${DIST_DIR}/renderer.zip" .)
+  echo "==> Packaging ${name}.zip"
+  (cd "${out_dir}" && zip -qr "${DIST_DIR}/${name}.zip" .)
 
-RENDERER_SIZE=$(du -h "${DIST_DIR}/renderer.zip" | cut -f1)
-echo "==> renderer.zip: ${RENDERER_SIZE}"
+  local size
+  size=$(du -h "${DIST_DIR}/${name}.zip" | cut -f1)
+  echo "==> ${name}.zip: ${size}"
+}
+
+# ─── Build all Lambdas ────────────────────────────────────────────────────────
+
+build_lambda "renderer" "${REPO_ROOT}/packages/lambdas/renderer/src/index.ts"
+build_lambda "api" "${REPO_ROOT}/packages/lambdas/api/src/index.ts"
+build_lambda "stripe-webhook" "${REPO_ROOT}/packages/lambdas/stripe-webhook/src/index.ts"
 
 echo "==> Build complete"
