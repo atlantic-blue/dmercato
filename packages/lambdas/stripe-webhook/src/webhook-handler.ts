@@ -30,7 +30,6 @@ interface SessionMetadata {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
-  items: string;
   subtotal: string;
   deliveryFee: string;
   total: string;
@@ -40,6 +39,8 @@ interface SessionMetadata {
   deliveryNotes?: string;
   requestedDate: string;
   requestedTime: string;
+  items_chunks: string;
+  [key: string]: string | undefined;
 }
 
 interface ParsedOrderItem {
@@ -50,9 +51,37 @@ interface ParsedOrderItem {
   subtotal: number;
 }
 
+function reassembleItems(metadata: SessionMetadata): Array<{ productId: string; quantity: number; price: number }> {
+  const chunkCount = parseInt(metadata.items_chunks ?? '0', 10);
+  const entries: string[] = [];
+  for (let i = 0; i < chunkCount; i++) {
+    const chunk = metadata[`items_${i}`] ?? '';
+    if (chunk) {
+      entries.push(...chunk.split('|'));
+    }
+  }
+  return entries.map((entry) => {
+    const [productId, quantity, price] = entry.split(':');
+    return { productId, quantity: parseInt(quantity, 10), price: parseInt(price, 10) };
+  });
+}
+
+function resolveOrderItems(
+  rawItems: Array<{ productId: string; quantity: number; price: number }>,
+  productMap: Map<string, string>,
+): ParsedOrderItem[] {
+  return rawItems.map((item) => ({
+    productId: item.productId,
+    name: productMap.get(item.productId) ?? item.productId,
+    price: item.price,
+    quantity: item.quantity,
+    subtotal: item.price * item.quantity,
+  }));
+}
+
 function parseMetadataAmounts(metadata: SessionMetadata) {
   return {
-    items: JSON.parse(metadata.items) as ParsedOrderItem[],
+    rawItems: reassembleItems(metadata),
     subtotal: parseInt(metadata.subtotal, 10),
     deliveryFee: parseInt(metadata.deliveryFee, 10),
     total: parseInt(metadata.total, 10),
@@ -63,7 +92,7 @@ function parseMetadataAmounts(metadata: SessionMetadata) {
 function buildOrderData(
   orderId: string,
   metadata: SessionMetadata,
-  amounts: ReturnType<typeof parseMetadataAmounts>,
+  amounts: { items: ParsedOrderItem[]; subtotal: number; deliveryFee: number; total: number; platformFee: number },
 ) {
   return {
     orderId,
@@ -106,12 +135,22 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   const amounts = parseMetadataAmounts(metadata);
 
   try {
+    const tenant = await getTenantBySlug({ vendorSlug: metadata.vendorSlug });
+    const productMap = new Map<string, string>();
+    if (tenant) {
+      for (const product of tenant.products) {
+        productMap.set(product.id, product.name);
+      }
+    }
+
+    const items = resolveOrderItems(amounts.rawItems, productMap);
+
     const orderResult = await createOrder({
       vendorSlug: metadata.vendorSlug,
       customerName: metadata.customerName,
       customerEmail: metadata.customerEmail,
       customerPhone: metadata.customerPhone || undefined,
-      items: amounts.items,
+      items,
       subtotal: amounts.subtotal,
       deliveryFee: amounts.deliveryFee,
       total: amounts.total,
@@ -125,8 +164,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
       stripePaymentIntentId: session.payment_intent as string,
     });
 
-    const orderData = buildOrderData(orderResult.orderId, metadata, amounts);
-    const tenant = await getTenantBySlug({ vendorSlug: metadata.vendorSlug });
+    const orderData = buildOrderData(orderResult.orderId, metadata, { ...amounts, items });
     const vendorEmail = tenant?.email ?? metadata.vendorSlug;
     await sendEmails(metadata, orderData, vendorEmail);
   } catch (error: unknown) {

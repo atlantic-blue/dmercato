@@ -1324,9 +1324,8 @@ describe('StripeWebhookHandler', () => {
                 vendorSlug: 'sweet-sin',
                 customerName: 'Email Fail Test',
                 customerEmail: 'fail-email@example.com',
-                items: JSON.stringify([
-                  { productId: 'prod-1', name: 'Cookie', price: 650, quantity: 1, subtotal: 650 },
-                ]),
+                items_0: 'prod-1:1:650',
+                items_chunks: '1',
                 subtotal: '650',
                 deliveryFee: '0',
                 total: '650',
@@ -1366,9 +1365,8 @@ describe('StripeWebhookHandler', () => {
                 vendorSlug: 'error-trigger',
                 customerName: 'Jane Doe',
                 customerEmail: 'jane@example.com',
-                items: JSON.stringify([
-                  { productId: 'prod-1', name: 'Cookie', price: 650, quantity: 1, subtotal: 650 },
-                ]),
+                items_0: 'prod-1:1:650',
+                items_chunks: '1',
                 subtotal: '650',
                 deliveryFee: '0',
                 total: '650',

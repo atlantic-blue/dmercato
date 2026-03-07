@@ -364,9 +364,8 @@ export function createStripeCheckoutCompletedEventFixture(overrides: Record<stri
           customerName: 'Jane Doe',
           customerEmail: 'jane@example.com',
           customerPhone: '+61412345678',
-          items: JSON.stringify([
-            { productId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', name: 'Lust', price: 650, quantity: 2, subtotal: 1300 },
-          ]),
+          items_0: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:2:650',
+          items_chunks: '1',
           subtotal: '1300',
           deliveryFee: '500',
           total: '1800',
