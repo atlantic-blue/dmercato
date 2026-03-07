@@ -50,6 +50,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Build packages
+        run: npm run build
+
       - name: Build Lambdas
         run: bash scripts/build-lambdas.sh
 
