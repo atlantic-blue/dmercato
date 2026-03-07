@@ -131,7 +131,7 @@ function buildOrderEmailHtml(input: SendOrderConfirmationEmailInput): string {
           <!-- Footer -->
           <tr>
             <td style="padding:32px 40px;text-align:center">
-              <p style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;color:#64748b;line-height:1.6">Questions about your order? Reply to this email or contact ${escapeHtml(vendorName)} directly.</p>
+              <p style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;color:#64748b;line-height:1.6">Thank you for supporting ${escapeHtml(vendorName)} on dmercato.</p>
             </td>
           </tr>
           <!-- Brand bar -->
@@ -175,7 +175,7 @@ function buildOrderEmailText(input: SendOrderConfirmationEmailInput): string {
     lines.push(`Delivery Notes: ${order.deliveryNotes}`);
   }
   lines.push('');
-  lines.push(`Questions? Reply to this email or contact ${vendorName} directly.`);
+  lines.push(`Thank you for supporting ${vendorName} on dmercato.`);
   return lines.join('\n');
 }
 

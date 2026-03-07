@@ -116,12 +116,13 @@ async function sendEmails(
   metadata: SessionMetadata,
   orderData: ReturnType<typeof buildOrderData>,
   vendorEmail: string,
+  vendorName: string,
 ): Promise<void> {
   await sendOrderConfirmationEmail({
     customerEmail: metadata.customerEmail,
     customerName: metadata.customerName,
     order: orderData,
-    vendorName: metadata.vendorSlug,
+    vendorName,
   }).catch(() => {});
 
   const baseUrl = process.env.BASE_URL ?? '';
@@ -129,7 +130,7 @@ async function sendEmails(
   const recipientEmail = isProduction ? vendorEmail : 'atlanticbluesolutionslimited@gmail.com';
   await sendVendorOrderNotificationEmail({
     vendorEmail: recipientEmail,
-    vendorName: metadata.vendorSlug,
+    vendorName,
     order: orderData,
   }).catch(() => {});
 }
@@ -170,7 +171,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
 
     const orderData = buildOrderData(orderResult.orderId, metadata, { ...amounts, items });
     const vendorEmail = tenant?.email ?? metadata.vendorSlug;
-    await sendEmails(metadata, orderData, vendorEmail);
+    const vendorName = tenant?.name ?? metadata.vendorSlug;
+    await sendEmails(metadata, orderData, vendorEmail, vendorName);
   } catch (error: unknown) {
     if (error instanceof DuplicateOrderError) {
       return;
