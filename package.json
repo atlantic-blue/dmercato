@@ -19,7 +19,7 @@
     "test": "npx jest --passWithNoTests",
     "test:coverage": "npx jest --coverage --passWithNoTests",
     "typecheck": "tsc --build",
-    "lint": "eslint 'packages/**/*.ts' --ext .ts,.tsx",
+    "lint": "eslint 'packages/**/*.ts'",
     "build": "tsc --build"
   },
   "devDependencies": {
