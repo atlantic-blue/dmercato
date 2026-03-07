@@ -191,6 +191,7 @@ function renderCartDrawer(tenant: Tenant): string {
         <input type="time" id="checkout-time" name="time" required />
         <label for="checkout-notes">Delivery Notes</label>
         <textarea id="checkout-notes" name="notes" placeholder="Any special instructions"></textarea>
+        <div id="checkout-error" class="checkout-error" style="display:none"></div>
         <button type="submit" class="checkout-button">Pay Now</button>
       </form>
     </div>
@@ -314,6 +315,11 @@ function renderCartScript(): string {
         saveCart(cart);
         updateCartDisplay();
       }
+      function showCheckoutError(msg){
+        var el = document.getElementById('checkout-error');
+        if(el){ el.textContent = msg; el.style.display = 'block'; }
+        setTimeout(function(){ if(el) el.style.display = 'none'; }, 8000);
+      }
       document.addEventListener('click', function(e){
         var btn = e.target.closest('.add-to-cart');
         if(!btn || btn.disabled) return;
@@ -338,7 +344,7 @@ function renderCartScript(): string {
         checkoutForm.addEventListener('submit', function(e){
           e.preventDefault();
           var cart = getCart();
-          if(cart.length === 0){ alert('Your cart is empty'); return; }
+          if(cart.length === 0){ showCheckoutError('Your cart is empty'); return; }
           var btn = checkoutForm.querySelector('.checkout-button');
           btn.disabled = true;
           btn.textContent = 'Processing...';
@@ -361,6 +367,12 @@ function renderCartScript(): string {
           .then(function(res){ return res.json(); })
           .then(function(data){
             if(data.data && data.data.clientSecret){
+              if(typeof Stripe === 'undefined'){
+                showCheckoutError('Payment system failed to load. Please refresh and try again.');
+                btn.disabled = false;
+                btn.textContent = 'Pay Now';
+                return;
+              }
               var stripe = Stripe(window.STRIPE_PK);
               var overlay = document.getElementById('checkout-overlay');
               overlay.style.display = 'flex';
@@ -376,20 +388,22 @@ function renderCartScript(): string {
                   btn.textContent = 'Pay Now';
                 })
                 .catch(function(err){
+                  console.error('Stripe embed error:', err);
                   overlay.style.display = 'none';
-                  alert('Payment form failed to load: ' + (err.message || err));
+                  showCheckoutError(err.message || 'Payment form failed to load. Please try again.');
                   btn.disabled = false;
                   btn.textContent = 'Pay Now';
                 });
             } else {
               var msg = (data.error && data.error.message) || 'Checkout failed. Please try again.';
-              alert(msg);
+              showCheckoutError(msg);
               btn.disabled = false;
               btn.textContent = 'Pay Now';
             }
           })
           .catch(function(err){
-            alert('Something went wrong: ' + (err.message || err));
+            console.error('Checkout error:', err);
+            showCheckoutError('Something went wrong. Please try again.');
             btn.disabled = false;
             btn.textContent = 'Pay Now';
           });
@@ -500,6 +514,7 @@ function renderInlineCss(): string {
     .checkout-form label{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
     .checkout-form input,.checkout-form select,.checkout-form textarea{padding:0.5rem;border:1px solid var(--border);font-family:'Public Sans',sans-serif}
     .checkout-form input:focus,.checkout-form select:focus,.checkout-form textarea:focus{outline:2px solid var(--terracotta);outline-offset:-1px;border-color:var(--terracotta)}
+    .checkout-error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:0.75rem;font-size:0.875rem;border-radius:0.25rem}
     .checkout-button{background:var(--terracotta);color:#fff;border:none;padding:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s}
     .checkout-button:hover{background:#d44f0e}
     .checkout-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center}
@@ -526,6 +541,7 @@ export function renderHtmlTemplate(input: RenderHtmlTemplateInput): string {
     ${renderJsonLd(seoMetadata.jsonLd as Record<string, unknown>)}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://js.stripe.com/v3/" async></script>
     ${renderInlineCss()}
 </head>
 <body>
@@ -568,7 +584,6 @@ export function renderHtmlTemplate(input: RenderHtmlTemplateInput): string {
     </div>
   </div>
   <script>window.VENDOR_SLUG='${escapeHtml(tenant.vendorSlug)}';window.STRIPE_PK='${escapeHtml(process.env.STRIPE_PUBLISHABLE_KEY ?? '')}';</script>
-  <script src="https://js.stripe.com/v3/"></script>
   ${renderCartScript()}
 </body>
 </html>`;
