@@ -117,11 +117,9 @@ function validateFulfilment(tenant: Tenant, method: string): string | null {
 
 function buildItemsMetadata(products: Array<Product & { quantity: number }>): string {
   return JSON.stringify(products.map((p) => ({
-    productId: p.id,
-    name: p.name,
+    id: p.id,
+    qty: p.quantity,
     price: p.price,
-    quantity: p.quantity,
-    subtotal: p.price * p.quantity,
   })));
 }
 
