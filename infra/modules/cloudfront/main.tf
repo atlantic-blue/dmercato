@@ -21,6 +21,22 @@ resource "aws_cloudfront_origin_access_control" "assets" {
 }
 
 # -----------------------------------------------------------------------------
+# CloudFront Function to strip /assets prefix for S3 origin
+# -----------------------------------------------------------------------------
+resource "aws_cloudfront_function" "strip_assets_prefix" {
+  name    = "${var.project_name}-strip-assets-${var.environment}"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = <<-EOF
+    function handler(event) {
+      var request = event.request;
+      request.uri = request.uri.replace(/^\/assets/, '');
+      return request;
+    }
+  EOF
+}
+
+# -----------------------------------------------------------------------------
 # CloudFront Distribution
 # -----------------------------------------------------------------------------
 resource "aws_cloudfront_distribution" "main" {
@@ -87,6 +103,11 @@ resource "aws_cloudfront_distribution" "main" {
     compress               = true
 
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.strip_assets_prefix.arn
+    }
   }
 
   # ---------------------------------------------------------------------------

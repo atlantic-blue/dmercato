@@ -323,9 +323,9 @@ function renderInlineCss(): string {
     @media(min-width:1024px){.products-grid{grid-template-columns:repeat(3,1fr);gap:2rem}}
     .product-card{border:1px solid var(--border);overflow:hidden;background:#fff;transition:box-shadow 0.2s}
     .product-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
-    .product-image{height:240px;background-size:cover;background-position:center;filter:grayscale(100%);transition:filter 0.4s;background-color:#e8e0d8}
+    .product-image{height:240px;background-size:cover;background-position:center;background-color:#e8e0d8;transition:transform 0.3s;overflow:hidden}
     @media(min-width:768px){.product-image{height:280px}}
-    .product-card:hover .product-image{filter:grayscale(0%)}
+    .product-card:hover .product-image{transform:scale(1.03)}
     .product-name{padding:1rem 1.25rem 0;font-size:1rem;font-family:'Public Sans',sans-serif;font-style:normal;font-weight:600}
     .product-description{padding:0.25rem 1.25rem;font-size:0.875rem;color:var(--text-muted)}
     .product-footer{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem}
