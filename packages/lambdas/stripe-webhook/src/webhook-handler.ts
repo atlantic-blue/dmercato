@@ -126,13 +126,12 @@ async function sendEmails(
 
   const baseUrl = process.env.BASE_URL ?? '';
   const isProduction = baseUrl === 'https://dmercato.com';
-  if (isProduction) {
-    await sendVendorOrderNotificationEmail({
-      vendorEmail,
-      vendorName: metadata.vendorSlug,
-      order: orderData,
-    }).catch(() => {});
-  }
+  const recipientEmail = isProduction ? vendorEmail : 'atlanticbluesolutionslimited@gmail.com';
+  await sendVendorOrderNotificationEmail({
+    vendorEmail: recipientEmail,
+    vendorName: metadata.vendorSlug,
+    order: orderData,
+  }).catch(() => {});
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
