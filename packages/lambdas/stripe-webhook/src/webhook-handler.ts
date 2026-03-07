@@ -9,6 +9,7 @@ import { docClient } from '@dmercato/db';
 interface WebhookEvent {
   headers: Record<string, string>;
   body: string;
+  isBase64Encoded?: boolean;
 }
 
 interface WebhookResponse {
@@ -210,13 +211,20 @@ function verifySignature(body: string, signature: string): Stripe.Event {
 export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
   const signature = event.headers['stripe-signature'];
   if (!signature) {
+    console.error('Webhook missing stripe-signature header. Available headers:', Object.keys(event.headers).join(', '));
     return jsonResponse(400, { error: { code: 'MISSING_SIGNATURE', message: 'stripe-signature header is required' } });
   }
 
+  const body = event.isBase64Encoded
+    ? Buffer.from(event.body, 'base64').toString('utf-8')
+    : event.body;
+
   let stripeEvent: Stripe.Event;
   try {
-    stripeEvent = verifySignature(event.body, signature);
-  } catch (_error: unknown) {
+    stripeEvent = verifySignature(body, signature);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Webhook signature verification failed:', message);
     return jsonResponse(400, { error: { code: 'INVALID_SIGNATURE', message: 'Invalid webhook signature' } });
   }
 
@@ -232,7 +240,9 @@ export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
         break;
     }
     return jsonResponse(200, { data: { received: true } });
-  } catch (_error: unknown) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Webhook handler error:', message);
     return jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } });
   }
 }
