@@ -244,6 +244,7 @@ data "aws_iam_policy_document" "deploy" {
       "lambda:PublishVersion",
       "lambda:TagResource",
       "lambda:ListTags",
+      "lambda:GetFunctionCodeSigningConfig",
     ]
     resources = [
       "arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:dmercato-*",
@@ -288,6 +289,14 @@ data "aws_iam_policy_document" "deploy" {
     resources = ["*"]
   }
 
+  # CloudWatch Logs — DescribeLogGroups requires wildcard resource
+  statement {
+    sid       = "CloudWatchLogsDescribe"
+    effect    = "Allow"
+    actions   = ["logs:DescribeLogGroups"]
+    resources = ["*"]
+  }
+
   # CloudWatch Logs (Lambda + API Gateway log groups)
   statement {
     sid    = "CloudWatchLogs"
@@ -295,7 +304,6 @@ data "aws_iam_policy_document" "deploy" {
     actions = [
       "logs:CreateLogGroup",
       "logs:DeleteLogGroup",
-      "logs:DescribeLogGroups",
       "logs:PutRetentionPolicy",
       "logs:TagLogGroup",
       "logs:TagResource",
