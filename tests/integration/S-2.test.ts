@@ -294,7 +294,7 @@ describe('RenderVendorPage', () => {
     it('should render product cards with name and price', async () => {
       const response = await renderer.handler({ path: '/sweet-sin' });
 
-      expect(response.body).toContain('Midnight Sea Salt');
+      expect(response.body).toContain('Lust');
     });
 
     it('should include add-to-cart buttons for products', async () => {
