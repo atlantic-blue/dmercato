@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { createOrder } from '@dmercato/db';
+import { createOrder, getTenantBySlug } from '@dmercato/db';
 import { DuplicateOrderError } from '@dmercato/types';
 import { sendOrderConfirmationEmail } from './send-order-confirmation-email';
 import { sendVendorOrderNotificationEmail } from './send-vendor-order-notification-email';
@@ -85,6 +85,7 @@ function buildOrderData(
 async function sendEmails(
   metadata: SessionMetadata,
   orderData: ReturnType<typeof buildOrderData>,
+  vendorEmail: string,
 ): Promise<void> {
   await sendOrderConfirmationEmail({
     customerEmail: metadata.customerEmail,
@@ -94,7 +95,7 @@ async function sendEmails(
   }).catch(() => {});
 
   await sendVendorOrderNotificationEmail({
-    vendorEmail: metadata.customerEmail,
+    vendorEmail,
     vendorName: metadata.vendorSlug,
     order: orderData,
   }).catch(() => {});
@@ -125,7 +126,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     });
 
     const orderData = buildOrderData(orderResult.orderId, metadata, amounts);
-    await sendEmails(metadata, orderData);
+    const tenant = await getTenantBySlug({ vendorSlug: metadata.vendorSlug });
+    const vendorEmail = tenant?.email ?? metadata.vendorSlug;
+    await sendEmails(metadata, orderData, vendorEmail);
   } catch (error: unknown) {
     if (error instanceof DuplicateOrderError) {
       return;
@@ -175,9 +178,8 @@ export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
   let stripeEvent: Stripe.Event;
   try {
     stripeEvent = verifySignature(event.body, signature);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Invalid signature';
-    return jsonResponse(400, { error: { code: 'INVALID_SIGNATURE', message } });
+  } catch (_error: unknown) {
+    return jsonResponse(400, { error: { code: 'INVALID_SIGNATURE', message: 'Invalid webhook signature' } });
   }
 
   try {
@@ -192,8 +194,7 @@ export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
         break;
     }
     return jsonResponse(200, { data: { received: true } });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal error';
-    return jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message } });
+  } catch (_error: unknown) {
+    return jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } });
   }
 }

@@ -52,6 +52,29 @@ function checkRequiredString(
   return value;
 }
 
+const ITEMS_MAX_COUNT = 50;
+
+function validateItemFields(
+  item: Record<string, unknown>,
+  errors: ValidationFieldError[],
+): void {
+  const productId = item.productId;
+  if (productId === undefined || productId === null) {
+    errors.push({ field: 'items.productId', message: 'item productId is required', code: 'REQUIRED' });
+  } else if (typeof productId !== 'string') {
+    errors.push({ field: 'items.productId', message: 'item productId must be a string', code: 'INVALID_FORMAT' });
+  }
+
+  const quantity = item.quantity;
+  if (quantity === undefined || quantity === null) {
+    errors.push({ field: 'items.quantity', message: 'item quantity is required', code: 'REQUIRED' });
+  } else if (typeof quantity !== 'number' || !Number.isInteger(quantity)) {
+    errors.push({ field: 'items.quantity', message: 'item quantity must be an integer', code: 'INVALID_VALUE' });
+  } else if (quantity <= 0) {
+    errors.push({ field: 'items.quantity', message: 'item quantity must be positive', code: 'INVALID_VALUE' });
+  }
+}
+
 function validateItems(
   input: Record<string, unknown>,
   errors: ValidationFieldError[],
@@ -73,15 +96,17 @@ function validateItems(
     return;
   }
 
+  if (items.length > ITEMS_MAX_COUNT) {
+    errors.push({ field: 'items', message: `items must not exceed ${ITEMS_MAX_COUNT}`, code: 'TOO_MANY' });
+    return;
+  }
+
   for (const item of items) {
     if (!isRecord(item)) {
       errors.push({ field: 'items', message: 'each item must be an object', code: 'INVALID_FORMAT' });
       continue;
     }
-    const quantity = item.quantity;
-    if (typeof quantity === 'number' && quantity <= 0) {
-      errors.push({ field: 'items.quantity', message: 'item quantity must be positive', code: 'INVALID_VALUE' });
-    }
+    validateItemFields(item, errors);
   }
 }
 
@@ -143,6 +168,10 @@ export function validateCheckoutInput(input: unknown): ValidationResult {
   const requestedDate = checkRequiredString(input, 'requestedDate', errors);
   if (requestedDate && !DATE_REGEX.test(requestedDate)) {
     errors.push({ field: 'requestedDate', message: 'requestedDate must be YYYY-MM-DD', code: 'INVALID_FORMAT' });
+  }
+
+  if (input.deliveryNotes !== undefined) {
+    validateStringLength(input, 'deliveryNotes', 500, errors);
   }
 
   const requestedTime = checkRequiredString(input, 'requestedTime', errors);

@@ -85,22 +85,24 @@ function calculatePlatformFee(total: number): number {
   return Math.round(total * (feePercent / 100));
 }
 
-const rateLimitStore = new Map<string, number[]>();
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const rateLimitRecords: Record<string, number[]> = {};
+
+function getRecentRequests(sourceIp: string): number[] {
+  const now = Date.now();
+  const timestamps = rateLimitRecords[sourceIp] ?? [];
+  return timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+}
 
 function isRateLimited(sourceIp: string): boolean {
-  const now = Date.now();
-  const timestamps = rateLimitStore.get(sourceIp) ?? [];
-  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  return getRecentRequests(sourceIp).length >= RATE_LIMIT_MAX;
+}
 
-  if (recent.length >= RATE_LIMIT_MAX) {
-    return true;
-  }
-
-  recent.push(now);
-  rateLimitStore.set(sourceIp, recent);
-  return false;
+function recordRateLimitEntry(sourceIp: string): void {
+  const recent = getRecentRequests(sourceIp);
+  recent.push(Date.now());
+  rateLimitRecords[sourceIp] = recent;
 }
 
 function validateFulfilment(tenant: Tenant, method: string): string | null {
@@ -199,6 +201,10 @@ export async function handleCreateCheckoutSession(
   body: CheckoutRequestBody,
   sourceIp: string,
 ): Promise<LambdaResponse> {
+  if (isRateLimited(sourceIp)) {
+    return errorResponse(429, 'RATE_LIMITED', 'Too many requests');
+  }
+
   const tenant = await getTenantBySlug({ vendorSlug: body.vendorSlug });
 
   const tenantError = validateTenant(tenant, body);
@@ -211,10 +217,7 @@ export async function handleCreateCheckoutSession(
     return productError;
   }
 
-  if (isRateLimited(sourceIp)) {
-    return errorResponse(429, 'RATE_LIMITED', 'Too many requests');
-  }
-
+  recordRateLimitEntry(sourceIp);
   return callStripeCheckout(tenant!, body, products);
 }
 
@@ -254,8 +257,7 @@ async function callStripeCheckout(
     });
 
     return jsonResponse(200, { data: { checkoutSessionId: session.id, checkoutUrl: session.url } });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Stripe checkout failed';
-    return errorResponse(500, 'STRIPE_ERROR', message);
+  } catch (_error: unknown) {
+    return errorResponse(500, 'STRIPE_ERROR', 'Payment processing failed');
   }
 }
