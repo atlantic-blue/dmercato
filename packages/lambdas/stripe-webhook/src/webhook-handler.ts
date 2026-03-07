@@ -1,0 +1,199 @@
+import Stripe from 'stripe';
+import { createOrder } from '@dmercato/db';
+import { DuplicateOrderError } from '@dmercato/types';
+import { sendOrderConfirmationEmail } from './send-order-confirmation-email';
+import { sendVendorOrderNotificationEmail } from './send-vendor-order-notification-email';
+import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { docClient } from '@dmercato/db';
+
+interface WebhookEvent {
+  headers: Record<string, string>;
+  body: string;
+}
+
+interface WebhookResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+}
+
+const JSON_HEADERS: Record<string, string> = {
+  'Content-Type': 'application/json',
+};
+
+function jsonResponse(statusCode: number, body: Record<string, unknown>): WebhookResponse {
+  return { statusCode, headers: JSON_HEADERS, body: JSON.stringify(body) };
+}
+
+interface SessionMetadata {
+  vendorSlug: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  items: string;
+  subtotal: string;
+  deliveryFee: string;
+  total: string;
+  platformFee: string;
+  currency: string;
+  fulfilmentMethod: string;
+  deliveryNotes?: string;
+  requestedDate: string;
+  requestedTime: string;
+}
+
+interface ParsedOrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+}
+
+function parseMetadataAmounts(metadata: SessionMetadata) {
+  return {
+    items: JSON.parse(metadata.items) as ParsedOrderItem[],
+    subtotal: parseInt(metadata.subtotal, 10),
+    deliveryFee: parseInt(metadata.deliveryFee, 10),
+    total: parseInt(metadata.total, 10),
+    platformFee: parseInt(metadata.platformFee, 10),
+  };
+}
+
+function buildOrderData(
+  orderId: string,
+  metadata: SessionMetadata,
+  amounts: ReturnType<typeof parseMetadataAmounts>,
+) {
+  return {
+    orderId,
+    items: amounts.items,
+    subtotal: amounts.subtotal,
+    deliveryFee: amounts.deliveryFee,
+    total: amounts.total,
+    currency: metadata.currency,
+    fulfilmentMethod: metadata.fulfilmentMethod,
+    requestedDate: metadata.requestedDate,
+    requestedTime: metadata.requestedTime,
+    deliveryNotes: metadata.deliveryNotes || undefined,
+    customerName: metadata.customerName,
+    customerEmail: metadata.customerEmail,
+    customerPhone: metadata.customerPhone || undefined,
+  };
+}
+
+async function sendEmails(
+  metadata: SessionMetadata,
+  orderData: ReturnType<typeof buildOrderData>,
+): Promise<void> {
+  await sendOrderConfirmationEmail({
+    customerEmail: metadata.customerEmail,
+    customerName: metadata.customerName,
+    order: orderData,
+    vendorName: metadata.vendorSlug,
+  }).catch(() => {});
+
+  await sendVendorOrderNotificationEmail({
+    vendorEmail: metadata.customerEmail,
+    vendorName: metadata.vendorSlug,
+    order: orderData,
+  }).catch(() => {});
+}
+
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const metadata = session.metadata as unknown as SessionMetadata;
+  const amounts = parseMetadataAmounts(metadata);
+
+  try {
+    const orderResult = await createOrder({
+      vendorSlug: metadata.vendorSlug,
+      customerName: metadata.customerName,
+      customerEmail: metadata.customerEmail,
+      customerPhone: metadata.customerPhone || undefined,
+      items: amounts.items,
+      subtotal: amounts.subtotal,
+      deliveryFee: amounts.deliveryFee,
+      total: amounts.total,
+      platformFee: amounts.platformFee,
+      currency: metadata.currency,
+      fulfilmentMethod: metadata.fulfilmentMethod as 'takeout' | 'delivery',
+      deliveryNotes: metadata.deliveryNotes || undefined,
+      requestedDate: metadata.requestedDate,
+      requestedTime: metadata.requestedTime,
+      stripeCheckoutSessionId: session.id,
+      stripePaymentIntentId: session.payment_intent as string,
+    });
+
+    const orderData = buildOrderData(orderResult.orderId, metadata, amounts);
+    await sendEmails(metadata, orderData);
+  } catch (error: unknown) {
+    if (error instanceof DuplicateOrderError) {
+      return;
+    }
+    throw error;
+  }
+}
+
+async function handleAccountUpdated(account: Stripe.Account): Promise<void> {
+  const tableName = process.env.TENANTS_TABLE;
+  if (!tableName) {
+    return;
+  }
+
+  await docClient.send(
+    new UpdateCommand({
+      TableName: tableName,
+      Key: { stripeAccountId: account.id },
+      UpdateExpression: 'SET stripeOnboardingComplete = :complete, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':complete': account.charges_enabled ?? false,
+        ':now': new Date().toISOString(),
+      },
+    }),
+  );
+}
+
+function verifySignature(body: string, signature: string): Stripe.Event {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error('Webhook secret not configured');
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
+    apiVersion: '2023-10-16' as Stripe.LatestApiVersion,
+  });
+
+  return stripe.webhooks.constructEvent(body, signature, webhookSecret);
+}
+
+export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
+  const signature = event.headers['stripe-signature'];
+  if (!signature) {
+    return jsonResponse(400, { error: { code: 'MISSING_SIGNATURE', message: 'stripe-signature header is required' } });
+  }
+
+  let stripeEvent: Stripe.Event;
+  try {
+    stripeEvent = verifySignature(event.body, signature);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Invalid signature';
+    return jsonResponse(400, { error: { code: 'INVALID_SIGNATURE', message } });
+  }
+
+  try {
+    switch (stripeEvent.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutCompleted(stripeEvent.data.object as Stripe.Checkout.Session);
+        break;
+      case 'account.updated':
+        await handleAccountUpdated(stripeEvent.data.object as Stripe.Account);
+        break;
+      default:
+        break;
+    }
+    return jsonResponse(200, { data: { received: true } });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal error';
+    return jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message } });
+  }
+}
