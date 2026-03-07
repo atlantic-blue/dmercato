@@ -2,8 +2,18 @@ import { getTenantBySlug } from '@dmercato/db';
 import { generateSeoMetadata } from './seo';
 import { renderHtmlTemplate, render404Page, render500Page } from './template';
 
+interface ApiGatewayV2Event {
+  rawPath: string;
+  requestContext?: {
+    http?: { method: string; path: string };
+  };
+  [key: string]: unknown;
+}
+
 interface HandlerInput {
-  path: string;
+  path?: string;
+  rawPath?: string;
+  requestContext?: ApiGatewayV2Event['requestContext'];
 }
 
 interface HandlerOutput {
@@ -61,7 +71,8 @@ function buildErrorResponse(): HandlerOutput {
 }
 
 export async function handler(event: HandlerInput): Promise<HandlerOutput> {
-  const slug = extractSlug(event.path);
+  const path = event.rawPath ?? event.path ?? '';
+  const slug = extractSlug(path);
 
   if (!slug) {
     return buildNotFoundResponse();
