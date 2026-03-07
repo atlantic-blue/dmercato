@@ -410,6 +410,19 @@ function renderCartScript(): string {
         });
       }
       updateCartDisplay();
+
+      // Order confirmation detection
+      var params = new URLSearchParams(window.location.search);
+      if(params.get('order') === 'confirmed'){
+        localStorage.removeItem(CART_KEY);
+        updateCartDisplay();
+        var banner = document.createElement('div');
+        banner.className = 'order-confirmation';
+        banner.innerHTML = '<h3>Order Confirmed</h3><p>Thank you for your order! You will receive a confirmation email shortly.</p><p>Session ID: ' + (params.get('session_id') || '').substring(0, 20) + '...</p><button class="dismiss-btn" onclick="this.parentElement.remove()">Dismiss</button>';
+        document.body.prepend(banner);
+        // Clean URL without reload
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     })();
   </script>`;
 }
@@ -521,6 +534,12 @@ function renderInlineCss(): string {
     .checkout-overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.5)}
     .checkout-overlay-panel{position:relative;background:#fff;border-radius:0.5rem;width:95%;max-width:32rem;max-height:90vh;overflow-y:auto;padding:1.5rem;box-shadow:0 25px 50px rgba(0,0,0,0.25)}
     .checkout-overlay-close{position:absolute;top:0.5rem;right:0.75rem;background:none;border:none;font-size:1.5rem;cursor:pointer;z-index:1}
+    .order-confirmation{position:fixed;top:0;left:0;right:0;z-index:300;background:#065f46;color:#fff;text-align:center;padding:1.5rem 2rem;font-size:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:slideDown 0.4s ease-out}
+    .order-confirmation h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:0.25rem;color:#fff}
+    .order-confirmation p{font-size:0.9rem;color:#d1fae5;margin:0.15rem 0}
+    .order-confirmation .dismiss-btn{background:none;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:0.35rem 1rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;margin-top:0.75rem;font-family:'Public Sans',sans-serif;transition:background 0.2s}
+    .order-confirmation .dismiss-btn:hover{background:rgba(255,255,255,0.15)}
+    @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
   </style>`;
 }
 
