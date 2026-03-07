@@ -669,7 +669,7 @@ describe('SeedTenantData', () => {
     });
 
     it('should have stripeAccountId set', () => {
-      expect(seed.stripeAccountId).toBe('acct_1PaE4OQjzqJXb0YW');
+      expect(seed.stripeAccountId).toBe('acct_1T8Ra6HDKr3rgtNX');
     });
 
     it('should have stripeOnboardingComplete as true', () => {

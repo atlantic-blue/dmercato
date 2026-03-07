@@ -193,7 +193,7 @@ export function createSeedTenantFixture() {
     deliveryFee: 500,
     takeoutEnabled: true,
     email: 'oscar@sweetsin.com.au',
-    stripeAccountId: 'acct_1PaE4OQjzqJXb0YW',
+    stripeAccountId: 'acct_1T8Ra6HDKr3rgtNX',
     stripeOnboardingComplete: true,
     customDomain: null,
     domainStatus: 'none',
