@@ -72,6 +72,7 @@ export async function createOrder(
       new PutCommand({
         TableName: tableName,
         Item: item,
+        ConditionExpression: 'attribute_not_exists(orderId)',
       }),
     );
   } catch (error: unknown) {
