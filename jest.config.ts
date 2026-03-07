@@ -10,6 +10,9 @@ const config: Config = {
     '^@dmercato/types$': '<rootDir>/packages/shared/types/src',
     '^@dmercato/db$': '<rootDir>/packages/shared/db/src',
     '^@dmercato/renderer$': '<rootDir>/packages/lambdas/renderer/src',
+    '^@dmercato/stripe$': '<rootDir>/packages/shared/stripe/src',
+    '^@dmercato/api$': '<rootDir>/packages/lambdas/api/src',
+    '^@dmercato/stripe-webhook$': '<rootDir>/packages/lambdas/stripe-webhook/src',
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {

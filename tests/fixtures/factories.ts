@@ -6,6 +6,18 @@
 let productIdCounter = 0;
 let marketDateIdCounter = 0;
 let operationalSlotIdCounter = 0;
+let orderItemCounter = 0;
+let orderCounter = 0;
+let checkoutInputCounter = 0;
+
+/** Helper to sum subtotals from an array of items. */
+function sumSubtotals(items: Array<{ subtotal: number }>): number {
+  let total = 0;
+  for (const item of items) {
+    total += item.subtotal;
+  }
+  return total;
+}
 
 export function createOperationalSlotFixture(overrides: Record<string, unknown> = {}) {
   operationalSlotIdCounter++;
@@ -189,4 +201,204 @@ export function createSeedTenantFixture() {
     createdAt: '2026-03-06T00:00:00.000Z',
     updatedAt: '2026-03-06T00:00:00.000Z',
   });
+}
+
+// ---------------------------------------------------------------------------
+// S-3: Order and checkout factories
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates an OrderItem fixture for testing.
+ */
+export function createOrderItemFixture(overrides: Record<string, unknown> = {}) {
+  orderItemCounter++;
+  const price = (overrides.price as number) ?? 650;
+  const quantity = (overrides.quantity as number) ?? 2;
+  return {
+    productId: `a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b${String(orderItemCounter).padStart(4, '0')}`,
+    name: `Cookie ${orderItemCounter}`,
+    price,
+    quantity,
+    subtotal: price * quantity,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates an Order fixture conforming to the Order contract.
+ */
+export function createOrderFixture(overrides: Record<string, unknown> = {}) {
+  orderCounter++;
+  const defaultItems = [
+    createOrderItemFixture({ name: 'Lust', price: 650, quantity: 2 }),
+    createOrderItemFixture({ name: 'Gluttony', price: 650, quantity: 1 }),
+  ];
+  const items = (overrides.items as Array<{ subtotal: number }>) ?? defaultItems;
+  const subtotal = (overrides.subtotal as number) ?? sumSubtotals(items);
+  const deliveryFee = (overrides.deliveryFee as number) ?? 500;
+  const total = (overrides.total as number) ?? (subtotal + deliveryFee);
+
+  return {
+    orderId: `ord-${String(orderCounter).padStart(3, '0')}-a1b2c3d4-e5f6-4a7b-8c9d`,
+    vendorSlug: 'sweet-sin',
+    customerName: 'Jane Doe',
+    customerEmail: `customer-${orderCounter}@example.com`,
+    customerPhone: '+61412345678',
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    platformFee: Math.round(total * 0.05),
+    currency: 'aud',
+    fulfilmentMethod: 'delivery' as const,
+    deliveryNotes: 'Leave at front door',
+    requestedDate: '2026-04-12',
+    requestedTime: '10:00',
+    stripeCheckoutSessionId: `cs_test_${orderCounter}_abc123`,
+    stripePaymentIntentId: `pi_test_${orderCounter}_def456`,
+    status: 'paid' as const,
+    createdAt: '2026-03-07T10:00:00.000Z',
+    updatedAt: '2026-03-07T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a CreateOrderInput fixture (no orderId, status, timestamps -- those are generated).
+ */
+export function createCreateOrderInputFixture(overrides: Record<string, unknown> = {}) {
+  const defaultItems = [
+    createOrderItemFixture({ name: 'Lust', price: 650, quantity: 2 }),
+    createOrderItemFixture({ name: 'Gluttony', price: 650, quantity: 1 }),
+  ];
+  const items = (overrides.items as Array<{ subtotal: number }>) ?? defaultItems;
+  const subtotal = (overrides.subtotal as number) ?? sumSubtotals(items);
+  const deliveryFee = (overrides.deliveryFee as number) ?? 500;
+  const total = (overrides.total as number) ?? (subtotal + deliveryFee);
+
+  return {
+    vendorSlug: 'sweet-sin',
+    customerName: 'Jane Doe',
+    customerEmail: `customer-${++checkoutInputCounter}@example.com`,
+    customerPhone: '+61412345678',
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    platformFee: Math.round(total * 0.05),
+    currency: 'aud',
+    fulfilmentMethod: 'delivery' as const,
+    deliveryNotes: 'Leave at front door',
+    requestedDate: '2026-04-12',
+    requestedTime: '10:00',
+    stripeCheckoutSessionId: `cs_test_input_${checkoutInputCounter}_abc123`,
+    stripePaymentIntentId: `pi_test_input_${checkoutInputCounter}_def456`,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a CreateCheckoutSession request body fixture.
+ */
+export function createCheckoutSessionInputFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    vendorSlug: 'sweet-sin',
+    items: [
+      { productId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', quantity: 2 },
+      { productId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', quantity: 1 },
+    ],
+    customerName: 'Jane Doe',
+    customerEmail: 'jane@example.com',
+    customerPhone: '+61412345678',
+    fulfilmentMethod: 'takeout' as const,
+    requestedDate: '2026-04-12',
+    requestedTime: '10:00',
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a Stripe-onboarded tenant fixture suitable for checkout tests.
+ */
+export function createStripeOnboardedTenantFixture(overrides: Record<string, unknown> = {}) {
+  return createTenantFixture({
+    vendorSlug: 'sweet-sin',
+    name: 'Sweet Sin',
+    email: 'oscar@sweetsin.com.au',
+    stripeAccountId: 'acct_test_1234567890',
+    stripeOnboardingComplete: true,
+    deliveryEnabled: true,
+    deliveryFee: 500,
+    takeoutEnabled: true,
+    products: [
+      createProductFixture({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', name: 'Lust', price: 650, available: true }),
+      createProductFixture({ id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', name: 'Gluttony', price: 650, available: true }),
+      createProductFixture({ id: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', name: 'Pride', price: 650, available: false }),
+    ],
+    operationalSchedule: [
+      createOperationalSlotFixture({ dayOfWeek: 6, startTime: '09:00', endTime: '15:00' }),
+      createOperationalSlotFixture({ dayOfWeek: 5, startTime: '10:00', endTime: '18:00' }),
+    ],
+    ...overrides,
+  });
+}
+
+/**
+ * Creates a Stripe webhook event body fixture for checkout.session.completed.
+ */
+export function createStripeCheckoutCompletedEventFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'evt_test_checkout_completed_001',
+    object: 'event',
+    type: 'checkout.session.completed',
+    data: {
+      object: {
+        id: 'cs_test_session_001',
+        payment_intent: 'pi_test_payment_001',
+        customer_details: {
+          email: 'jane@example.com',
+          name: 'Jane Doe',
+        },
+        metadata: {
+          vendorSlug: 'sweet-sin',
+          customerName: 'Jane Doe',
+          customerEmail: 'jane@example.com',
+          customerPhone: '+61412345678',
+          items: JSON.stringify([
+            { productId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', name: 'Lust', price: 650, quantity: 2, subtotal: 1300 },
+          ]),
+          subtotal: '1300',
+          deliveryFee: '500',
+          total: '1800',
+          platformFee: '90',
+          currency: 'aud',
+          fulfilmentMethod: 'delivery',
+          deliveryNotes: 'Leave at front door',
+          requestedDate: '2026-04-12',
+          requestedTime: '10:00',
+        },
+        amount_total: 1800,
+        currency: 'aud',
+      },
+    },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a Stripe webhook event body fixture for account.updated.
+ */
+export function createStripeAccountUpdatedEventFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'evt_test_account_updated_001',
+    object: 'event',
+    type: 'account.updated',
+    data: {
+      object: {
+        id: 'acct_test_1234567890',
+        charges_enabled: true,
+      },
+    },
+    ...overrides,
+  };
 }
