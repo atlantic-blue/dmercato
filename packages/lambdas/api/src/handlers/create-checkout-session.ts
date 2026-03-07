@@ -232,8 +232,7 @@ async function callStripeCheckout(
   const platformFee = calculatePlatformFee(total);
   const currency = tenant.products[0]?.currency ?? 'aud';
 
-  const baseUrl = process.env.CHECKOUT_SUCCESS_BASE_URL ?? process.env.BASE_URL ?? 'https://dmercato.com';
-  const cancelUrl = process.env.CHECKOUT_CANCEL_BASE_URL ?? process.env.BASE_URL ?? 'https://dmercato.com';
+  const baseUrl = process.env.BASE_URL ?? 'https://dmercato.com';
 
   const itemsJson = buildItemsMetadata(products);
   const metadata = buildMetadata(body, itemsJson, { subtotal, deliveryFee, total, platformFee, currency });
@@ -245,10 +244,10 @@ async function callStripeCheckout(
     });
 
     const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded',
       mode: 'payment',
       line_items: lineItems,
-      success_url: `${baseUrl}/${body.vendorSlug}?order=confirmed`,
-      cancel_url: `${cancelUrl}/${body.vendorSlug}`,
+      return_url: `${baseUrl}/${body.vendorSlug}?order=confirmed&session_id={CHECKOUT_SESSION_ID}`,
       payment_intent_data: {
         application_fee_amount: platformFee,
         transfer_data: { destination: tenant.stripeAccountId! },
@@ -256,7 +255,7 @@ async function callStripeCheckout(
       metadata,
     });
 
-    return jsonResponse(200, { data: { checkoutSessionId: session.id, checkoutUrl: session.url } });
+    return jsonResponse(200, { data: { checkoutSessionId: session.id, clientSecret: session.client_secret } });
   } catch (_error: unknown) {
     return errorResponse(500, 'STRIPE_ERROR', 'Payment processing failed');
   }

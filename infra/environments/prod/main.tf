@@ -85,6 +85,7 @@ module "lambda_functions" {
   base_url                = var.domain_name != "" ? "https://${var.domain_name}" : "https://${module.cloudfront.distribution_domain_name}"
   stripe_secret_key       = var.stripe_secret_key
   stripe_webhook_secret   = var.stripe_webhook_secret
+  stripe_publishable_key  = var.stripe_publishable_key
   platform_fee_percent    = var.platform_fee_percent
   deploy_bucket_name      = ""
 

@@ -293,7 +293,7 @@ describe('Order Type Invariants', () => {
 describe('ApiResponse Envelope Invariants', () => {
   describe('success response structure', () => {
     it('should include a data field on success', () => {
-      const response = { data: { checkoutSessionId: 'cs_123', checkoutUrl: 'https://checkout.stripe.com/pay/cs_123' } };
+      const response = { data: { checkoutSessionId: 'cs_123', clientSecret: 'cs_123_secret_abc' } };
       expect(response).toHaveProperty('data');
       expect(response).not.toHaveProperty('error');
     });
@@ -813,14 +813,14 @@ describe('CreateCheckoutSession', () => {
   }
 
   describe('success (200)', () => {
-    it('should return 200 with checkoutSessionId and checkoutUrl on valid input', async () => {
+    it('should return 200 with checkoutSessionId and clientSecret on valid input', async () => {
       const event = makeCheckoutEvent(createCheckoutSessionInputFixture());
       const response = await api.handler(event);
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.data).toHaveProperty('checkoutSessionId');
-      expect(body.data).toHaveProperty('checkoutUrl');
+      expect(body.data).toHaveProperty('clientSecret');
     });
 
     it('should return Content-Type application/json', async () => {
@@ -830,12 +830,12 @@ describe('CreateCheckoutSession', () => {
       expect(response.headers['Content-Type']).toBe('application/json');
     });
 
-    it('should return a valid Stripe checkout URL', async () => {
+    it('should return a clientSecret for embedded checkout', async () => {
       const event = makeCheckoutEvent(createCheckoutSessionInputFixture());
       const response = await api.handler(event);
 
       const body = JSON.parse(response.body);
-      expect(body.data.checkoutUrl).toMatch(/^https:\/\//);
+      expect(body.data.clientSecret).toBeTruthy();
     });
 
     it('should calculate subtotal server-side from product prices in DynamoDB', async () => {

@@ -39,3 +39,9 @@ variable "platform_fee_percent" {
   type        = string
   default     = "5"
 }
+
+variable "stripe_publishable_key" {
+  description = "Stripe publishable key for embedded checkout"
+  type        = string
+  default     = ""
+}

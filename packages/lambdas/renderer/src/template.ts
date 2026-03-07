@@ -283,6 +283,11 @@ function renderCartScript(): string {
         updateCartDisplay();
         toggleCart();
       });
+      var stripeCheckout = null;
+      window.closeCheckout = function(){
+        document.getElementById('checkout-overlay').style.display = 'none';
+        if(stripeCheckout){ stripeCheckout.destroy(); stripeCheckout = null; }
+      };
       var checkoutForm = document.getElementById('checkout-form');
       if(checkoutForm){
         checkoutForm.addEventListener('submit', function(e){
@@ -310,9 +315,21 @@ function renderCartScript(): string {
           })
           .then(function(res){ return res.json(); })
           .then(function(data){
-            if(data.data && data.data.checkoutUrl){
-              localStorage.removeItem(CART_KEY);
-              window.location.href = data.data.checkoutUrl;
+            if(data.data && data.data.clientSecret){
+              var stripe = Stripe(window.STRIPE_PK);
+              var overlay = document.getElementById('checkout-overlay');
+              overlay.style.display = 'flex';
+              var mountEl = document.getElementById('checkout-mount');
+              mountEl.innerHTML = '';
+              stripe.initEmbeddedCheckout({ clientSecret: data.data.clientSecret })
+                .then(function(checkout){
+                  stripeCheckout = checkout;
+                  checkout.mount('#checkout-mount');
+                  localStorage.removeItem(CART_KEY);
+                  toggleCart();
+                  btn.disabled = false;
+                  btn.textContent = 'Pay Now';
+                });
             } else {
               var msg = (data.error && data.error.message) || 'Checkout failed. Please try again.';
               alert(msg);
@@ -423,6 +440,10 @@ function renderInlineCss(): string {
     .checkout-form input:focus,.checkout-form select:focus,.checkout-form textarea:focus{outline:2px solid var(--terracotta);outline-offset:-1px;border-color:var(--terracotta)}
     .checkout-button{background:var(--terracotta);color:#fff;border:none;padding:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s}
     .checkout-button:hover{background:#d44f0e}
+    .checkout-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center}
+    .checkout-overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.5)}
+    .checkout-overlay-panel{position:relative;background:#fff;border-radius:0.5rem;width:95%;max-width:32rem;max-height:90vh;overflow-y:auto;padding:1.5rem;box-shadow:0 25px 50px rgba(0,0,0,0.25)}
+    .checkout-overlay-close{position:absolute;top:0.5rem;right:0.75rem;background:none;border:none;font-size:1.5rem;cursor:pointer;z-index:1}
   </style>`;
 }
 
@@ -476,7 +497,15 @@ export function renderHtmlTemplate(input: RenderHtmlTemplateInput): string {
   </footer>
   ${renderMobileBottomNav()}
   ${renderCartDrawer(tenant)}
-  <script>window.VENDOR_SLUG='${escapeHtml(tenant.vendorSlug)}';</script>
+  <div id="checkout-overlay" class="checkout-overlay" style="display:none">
+    <div class="checkout-overlay-bg" onclick="closeCheckout()"></div>
+    <div class="checkout-overlay-panel">
+      <button class="checkout-overlay-close" onclick="closeCheckout()" aria-label="Close checkout">&times;</button>
+      <div id="checkout-mount"></div>
+    </div>
+  </div>
+  <script>window.VENDOR_SLUG='${escapeHtml(tenant.vendorSlug)}';window.STRIPE_PK='${escapeHtml(process.env.STRIPE_PUBLISHABLE_KEY ?? '')}';</script>
+  <script src="https://js.stripe.com/v3/"></script>
   ${renderCartScript()}
 </body>
 </html>`;

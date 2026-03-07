@@ -24,8 +24,9 @@ resource "aws_lambda_function" "renderer" {
 
   environment {
     variables = {
-      TENANTS_TABLE = var.tenants_table_name
-      BASE_URL      = var.base_url
+      TENANTS_TABLE          = var.tenants_table_name
+      BASE_URL               = var.base_url
+      STRIPE_PUBLISHABLE_KEY = var.stripe_publishable_key
     }
   }
 

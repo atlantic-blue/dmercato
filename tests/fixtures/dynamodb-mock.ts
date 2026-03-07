@@ -130,7 +130,7 @@ jest.mock('stripe', () => {
 
           return Promise.resolve({
             id: 'cs_test_mock_session_' + Date.now(),
-            url: 'https://checkout.stripe.com/pay/cs_test_mock',
+            client_secret: 'cs_test_mock_secret_' + Date.now(),
           });
         }),
       },

@@ -56,6 +56,12 @@ variable "platform_fee_percent" {
   default     = "5"
 }
 
+variable "stripe_publishable_key" {
+  description = "Stripe publishable key for embedded checkout"
+  type        = string
+  default     = ""
+}
+
 variable "deploy_bucket_name" {
   description = "Name of the S3 bucket used for Lambda deployment artifacts"
   type        = string

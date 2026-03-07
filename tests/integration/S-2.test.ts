@@ -350,11 +350,12 @@ describe('RenderVendorPage', () => {
   });
 
   describe('no external JS requirement', () => {
-    it('should not require external JavaScript to render the page', async () => {
+    it('should not require external JavaScript to render the page (except Stripe.js)', async () => {
       const response = await renderer.handler({ path: '/sweet-sin' });
 
-      // No external JS script src tags (inline JS for cart is acceptable)
-      expect(response.body).not.toMatch(/<script\s+src=["']http/i);
+      // Remove Stripe.js tag before checking for other external scripts
+      const bodyWithoutStripe = response.body.replace(/<script\s+src=["']https:\/\/js\.stripe\.com[^"']*["'][^>]*><\/script>/gi, '');
+      expect(bodyWithoutStripe).not.toMatch(/<script\s+src=["']http/i);
     });
   });
 });
