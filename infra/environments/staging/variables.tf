@@ -15,3 +15,9 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "domain_name" {
+  description = "Custom domain name for this environment"
+  type        = string
+  default     = "staging.dmercato.com"
+}

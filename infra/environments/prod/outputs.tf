@@ -75,3 +75,28 @@ output "stripe_webhook_role_arn" {
   description = "ARN of the stripe-webhook Lambda IAM role"
   value       = module.lambdas.stripe_webhook_role_arn
 }
+
+output "renderer_function_name" {
+  description = "Name of the renderer Lambda function"
+  value       = module.lambda_functions.renderer_function_name
+}
+
+output "api_gateway_endpoint" {
+  description = "API Gateway invoke URL"
+  value       = module.api_gateway.api_endpoint
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID"
+  value       = module.cloudfront.distribution_id
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain"
+  value       = module.cloudfront.distribution_domain_name
+}
+
+output "site_url" {
+  description = "The URL where the site is accessible"
+  value       = var.domain_name != "" ? "https://${var.domain_name}" : "https://${module.cloudfront.distribution_domain_name}"
+}
