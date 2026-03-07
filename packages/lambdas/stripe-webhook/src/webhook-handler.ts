@@ -208,8 +208,18 @@ function verifySignature(body: string, signature: string): Stripe.Event {
   return stripe.webhooks.constructEvent(body, signature, webhookSecret);
 }
 
+function getHeader(headers: Record<string, string>, name: string): string | undefined {
+  const lower = name.toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === lower) {
+      return headers[key];
+    }
+  }
+  return undefined;
+}
+
 export async function handler(event: WebhookEvent): Promise<WebhookResponse> {
-  const signature = event.headers['stripe-signature'];
+  const signature = getHeader(event.headers, 'stripe-signature');
   if (!signature) {
     console.error('Webhook missing stripe-signature header. Available headers:', Object.keys(event.headers).join(', '));
     return jsonResponse(400, { error: { code: 'MISSING_SIGNATURE', message: 'stripe-signature header is required' } });
