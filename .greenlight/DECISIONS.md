@@ -515,3 +515,171 @@ The original design had zero JavaScript on vendor pages. Adding checkout require
 - Checkout button makes a POST to `/api/checkout/sessions` and redirects to the returned Stripe Checkout URL
 - If JS is disabled, products display without add-to-cart buttons (graceful degradation)
 - Cart JS must be tested: integration tests verify cart + checkout flow works end-to-end
+
+---
+
+## DEC-014: No platform fee. The subscription is the revenue
+
+**Date:** 2026-08-11
+**Status:** Accepted
+**Category:** Business Model
+**Supersedes:** The fee portion of DEC-009
+
+### Context
+
+DEC-009 adopted Stripe Connect destination charges with an `application_fee_amount`, giving
+the platform a cut of every vendor sale. Separately, the only paying customer this business
+has ever had, Sweet Sin, pays 8 pounds a month and stays for two stated reasons: it is
+cheaper than the alternatives, and it takes no commission on checkouts. Those two positions
+cannot both hold.
+
+### Decision
+
+**The application fee is zero. Revenue is the subscription: 8 pounds a month or 80 pounds a
+year, both as Stripe subscriptions.**
+
+Stripe Connect Express and destination charges stay exactly as DEC-009 describes, because
+that is how a vendor gets paid and how the platform stays out of PCI scope. Only the fee
+changes.
+
+### Rationale
+
+- Taking no commission is the differentiator against Fresha at 20 percent, Booksy Boost at
+  30, Treatwell at about 42, and Deliveroo and Uber Eats at roughly 30. A marketplace
+  structurally cannot match it, because commission is its whole revenue model. Being cheaper
+  is not a moat; taking nothing is.
+- The one retained customer names it as a reason he stays. That is the only retention
+  evidence in existence and it outranks a projection.
+- At 8 pounds the price sits below the threshold where a merchant stops to evaluate, which
+  is the strategy rather than a compromise.
+- The mechanism to charge a fee remains implemented and set to zero, so this is reversible
+  without code if the model ever changes.
+
+### Consequences
+
+- `application_fee_amount` is zero on every destination charge, and a test asserts it,
+  so nobody can reintroduce a fee accidentally.
+- Vendors keep 100 percent of their sales minus Stripe's own processing.
+- Platform revenue depends entirely on subscription conversion and retention, which makes
+  churn the number the model is most sensitive to and the one to instrument first.
+
+---
+
+## DEC-015: Onboarding is a menu photograph, not an empty editor
+
+**Date:** 2026-08-11
+**Status:** Accepted
+**Category:** Onboarding / Product
+
+### Context
+
+The predecessor product failed for a reason that has nothing to do with its market: the
+founder had to build Sweet Sin's shop himself, because the merchant could not. Creation
+defeated them. Editing did not, and the same merchant has maintained his own prices daily
+for years. At 8 pounds a month a founder in the loop is a loss rather than a sale, so a
+merchant who cannot self serve is not a customer.
+
+### Decision
+
+**A vendor photographs their physical menu and receives a complete populated shop.** They
+never meet an empty editor. They only ever adjust something that already exists.
+
+Fallbacks, in order: retake the photo with framing guidance, or type products by hand.
+
+### Rationale
+
+- Every micro food business already has a menu as an image, because they send it on
+  WhatsApp. It needs no third party permission, no scraping, and no platform that can revoke
+  access, and the data is better than anything scraped from a social profile.
+- Editing an existing thing is proven to work with this audience. Creating from nothing is
+  proven not to.
+- The bar is a live shop with real products in under five minutes, unaided. Shopify and Wix
+  are hours; Square Online is most of an hour.
+
+### Consequences
+
+- A new slice ahead of the existing admin work, since nothing downstream matters until a
+  stranger can publish alone.
+- Extraction runs on Bedrock, which the account already uses.
+- Extraction is fallible by nature, so the review step is part of the flow rather than an
+  error path, and must never present a wrong reading as a failure of the product.
+- Designs for all seven screens exist at `atlantic-blue/maistro` under `v3/designs/`.
+
+---
+
+## DEC-016: Existing vendor URLs are permanent, so both routing shapes coexist
+
+**Date:** 2026-08-11
+**Status:** Accepted
+**Category:** URL Architecture
+**Extends:** DEC-008
+
+### Context
+
+DEC-008 chose subdirectory routing for SEO concentration and that reasoning still holds. But
+Sweet Sin has been live at `sweetsin.maistro.live` for years. That address is in his
+Instagram bio, in his customers' messages, and on anything he has printed.
+
+### Decision
+
+**Subdirectory routing remains the default for new vendors. Existing vendor URLs are never
+changed.** `maistro.live` keeps serving indefinitely, independent of the rebrand.
+
+### Rationale
+
+- A merchant's address belongs to the merchant. Breaking it costs them customers, silently,
+  and they will not know why.
+- The cost of keeping an old distribution serving is pennies a month.
+
+### Consequences
+
+- `maistro.live` and its distribution, origin and host mapping stay running and are treated
+  as out of scope for any cleanup.
+- Migration for an existing vendor is opt in and only ever additive: a new address that
+  works alongside the old one, never instead of it.
+
+---
+
+## DEC-017: Acceptance tests drive the real application, because mocks already shipped six bugs
+
+**Date:** 2026-08-11
+**Status:** Accepted
+**Category:** Testing
+**Extends:** DEC-005
+
+### Context
+
+`BUG-REPORT-S3.md` records six production blocking bugs that shipped after 250 tests passed:
+API Gateway header casing, base64 encoded bodies, Stripe's 500 character metadata limit, a
+metadata format mismatch between the checkout producer and the webhook consumer, a Content
+Security Policy that blocked Stripe.js, and a live mode connected account under test mode
+keys. Its own conclusion is that SDK level mocking hid every one of them.
+
+### Decision
+
+**Jest stays for unit and handler tests. A Playwright acceptance suite, with Cucumber feature
+files as the inventory of what the product does, drives a really deployed environment against
+real Stripe test mode.**
+
+### Rationale
+
+- Each of the six bugs lived in the seam between components, which is precisely where a
+  mocked test cannot look. A suite that drives the real thing would have caught all six.
+- Feature files double as the specification of what exists, which is what makes "every
+  feature accounted for" checkable rather than aspirational.
+- Playwright rather than Cypress because the journeys cross origins, being the admin
+  application, the public shop and Stripe, and because device emulation matters when the
+  target device is a phone.
+
+### Consequences
+
+- **The harness fails a run that discovers zero scenarios**, and asserts a minimum scenario
+  count. A runner that finds nothing to do reports success otherwise, which is
+  indistinguishable from passing.
+- Every bug in `BUG-REPORT-S3.md` gets a scenario that fails against the original defect.
+- Producer and consumer boundaries get a round trip scenario, so the metadata mismatch class
+  cannot recur.
+- At least one fixture is production scale, being the full catalogue rather than two items,
+  since the metadata limit was invisible at small sizes.
+- Test fixtures assert they target Stripe test mode, so a live mode account id cannot be
+  seeded again.

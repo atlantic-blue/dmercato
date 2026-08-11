@@ -38,3 +38,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# acceptance run artefacts
+acceptance/.cucumber-messages.ndjson

@@ -8,6 +8,7 @@ const config: Config = {
   setupFiles: ['<rootDir>/tests/fixtures/dynamodb-mock.ts'],
   moduleNameMapper: {
     '^@dmercato/types$': '<rootDir>/packages/shared/types/src',
+    '^@dmercato/checkout-metadata$': '<rootDir>/packages/shared/checkout-metadata/src',
     '^@dmercato/db$': '<rootDir>/packages/shared/db/src',
     '^@dmercato/renderer$': '<rootDir>/packages/lambdas/renderer/src',
     '^@dmercato/stripe$': '<rootDir>/packages/shared/stripe/src',

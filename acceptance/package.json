@@ -1,0 +1,19 @@
+{
+  "name": "@dmercato/acceptance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Acceptance suite. Cucumber feature files are the inventory of what the product does; Playwright drives a really deployed environment.",
+  "scripts": {
+    "test": "node --experimental-strip-types run.ts",
+    "test:headed": "HEADED=1 node --experimental-strip-types run.ts",
+    "features": "node --experimental-strip-types run.ts --dry-run"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "@cucumber/messages": "^26.0.0",
+    "@playwright/test": "^1.48.0",
+    "playwright": "^1.48.0",
+    "stripe": "^17.0.0"
+  },
+  "type": "module"
+}
