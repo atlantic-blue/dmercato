@@ -4,9 +4,18 @@
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "references": [
-    { "path": "../../shared/types" },
-    { "path": "../../shared/db" }
+    {
+      "path": "../../shared/checkout-metadata"
+    },
+    {
+      "path": "../../shared/types"
+    },
+    {
+      "path": "../../shared/db"
+    }
   ]
 }
