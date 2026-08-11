@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "packages/shared/types",
+    "packages/shared/checkout-metadata",
     "packages/shared/db",
     "packages/shared/stripe",
     "packages/lambdas/renderer",
@@ -13,14 +14,16 @@
     "packages/lambdas/stripe-webhook",
     "packages/lambdas/auth",
     "packages/lambdas/cache-invalidator",
-    "packages/frontend/admin"
+    "packages/frontend/admin",
+    "acceptance"
   ],
   "scripts": {
-    "test": "npx jest --passWithNoTests",
-    "test:coverage": "npx jest --coverage --passWithNoTests",
+    "test": "npx jest",
+    "test:coverage": "npx jest --coverage",
     "typecheck": "tsc --build",
     "lint": "eslint 'packages/**/*.ts'",
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "test:acceptance": "npm run -w @dmercato/acceptance test"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
