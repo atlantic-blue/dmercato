@@ -11,6 +11,7 @@
     "stripe": "^14.0.0",
     "@dmercato/types": "*",
     "@dmercato/db": "*",
-    "@dmercato/stripe": "*"
+    "@dmercato/stripe": "*",
+    "@dmercato/checkout-metadata": "*"
   }
 }

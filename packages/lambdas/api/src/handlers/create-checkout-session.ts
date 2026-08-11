@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { getTenantBySlug } from '@dmercato/db';
 import { Tenant, Product, OperationalSlot, MarketDate } from '@dmercato/types';
+import { encodeItems, assertWithinStripeLimits } from '@dmercato/checkout-metadata';
 
 interface CheckoutRequestItem {
   productId: string;
@@ -115,27 +116,8 @@ function validateFulfilment(tenant: Tenant, method: string): string | null {
   return null;
 }
 
-function buildItemsMetadataChunks(products: Array<Product & { quantity: number }>): Record<string, string> {
-  const entries = products.map((p) => `${p.id}:${p.quantity}:${p.price}`);
-  const chunks: Record<string, string> = {};
-  let current = '';
-  let chunkIndex = 0;
-
-  for (const entry of entries) {
-    const separator = current.length > 0 ? '|' : '';
-    if (current.length + separator.length + entry.length > 500) {
-      chunks[`items_${chunkIndex}`] = current;
-      chunkIndex++;
-      current = entry;
-    } else {
-      current += separator + entry;
-    }
-  }
-  if (current.length > 0) {
-    chunks[`items_${chunkIndex}`] = current;
-  }
-  chunks['items_chunks'] = String(chunkIndex + 1);
-  return chunks;
+export function buildItemsMetadataChunks(products: Array<Product & { quantity: number }>): Record<string, string> {
+  return encodeItems(products.map((p) => ({ productId: p.id, quantity: p.quantity, price: p.price })));
 }
 
 function buildMetadata(
@@ -249,6 +231,7 @@ async function callStripeCheckout(
 
   const itemsChunks = buildItemsMetadataChunks(products);
   const metadata = buildMetadata(body, itemsChunks, { subtotal, deliveryFee, total, platformFee, currency });
+  assertWithinStripeLimits(metadata);
   const lineItems = buildLineItems(products, currency, deliveryFee);
 
   try {

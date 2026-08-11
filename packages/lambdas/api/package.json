@@ -14,6 +14,7 @@
     "@aws-sdk/client-lambda": "^3.500.0",
     "@dmercato/types": "*",
     "@dmercato/db": "*",
-    "stripe": "^14.0.0"
+    "stripe": "^14.0.0",
+    "@dmercato/checkout-metadata": "*"
   }
 }

@@ -5,6 +5,7 @@ import { sendOrderConfirmationEmail } from './send-order-confirmation-email';
 import { sendVendorOrderNotificationEmail } from './send-vendor-order-notification-email';
 import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient } from '@dmercato/db';
+import { decodeItems, type CartItem } from '@dmercato/checkout-metadata';
 
 interface WebhookEvent {
   headers: Record<string, string>;
@@ -52,19 +53,8 @@ interface ParsedOrderItem {
   subtotal: number;
 }
 
-function reassembleItems(metadata: SessionMetadata): Array<{ productId: string; quantity: number; price: number }> {
-  const chunkCount = parseInt(metadata.items_chunks ?? '0', 10);
-  const entries: string[] = [];
-  for (let i = 0; i < chunkCount; i++) {
-    const chunk = metadata[`items_${i}`] ?? '';
-    if (chunk) {
-      entries.push(...chunk.split('|'));
-    }
-  }
-  return entries.map((entry) => {
-    const parts = entry.split(':');
-    return { productId: parts[0] ?? '', quantity: parseInt(parts[1] ?? '0', 10), price: parseInt(parts[2] ?? '0', 10) };
-  });
+export function reassembleItems(metadata: SessionMetadata): CartItem[] {
+  return decodeItems(metadata);
 }
 
 function resolveOrderItems(
