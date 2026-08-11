@@ -81,8 +81,19 @@ function isWithinSchedule(
   );
 }
 
-function calculatePlatformFee(total: number): number {
-  const feePercent = parseInt(process.env.PLATFORM_FEE_PERCENT ?? '5', 10);
+/**
+ * The platform takes no commission. Revenue is the vendor's subscription, and taking nothing
+ * per sale is the difference against the marketplaces a vendor would otherwise use, which
+ * charge between 20 and 42 percent of a first order.
+ *
+ * The mechanism stays in place so the decision is reversible without code, but the default is
+ * zero and a test holds it there. See DEC-014.
+ */
+export function calculatePlatformFee(total: number): number {
+  const feePercent = parseInt(process.env.PLATFORM_FEE_PERCENT ?? '0', 10);
+  if (!Number.isFinite(feePercent) || feePercent <= 0) {
+    return 0;
+  }
   return Math.round(total * (feePercent / 100));
 }
 

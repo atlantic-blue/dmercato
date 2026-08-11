@@ -35,9 +35,9 @@ variable "stripe_webhook_secret" {
 }
 
 variable "platform_fee_percent" {
-  description = "Platform fee percentage for Stripe checkout"
+  description = "Platform fee percentage for Stripe checkout. Zero: the platform takes no commission, revenue is the subscription (DEC-014)"
   type        = string
-  default     = "5"
+  default     = "0"
 }
 
 variable "stripe_publishable_key" {
