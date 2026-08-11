@@ -1,0 +1,108 @@
+name: Deploy Dev
+
+on:
+  workflow_dispatch:
+
+# Deliberately manual. An automatic apply on every merge would change infrastructure with
+# nobody watching, and the first run of this creates real billable resources.
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: "1.5"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test -- --coverage
+
+  deploy-dev:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Build Lambdas
+        run: bash scripts/build-lambdas.sh
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform init
+        working-directory: infra/environments/dev
+        run: terraform init
+
+      - name: Terraform plan
+        working-directory: infra/environments/dev
+        run: |
+          terraform plan -out=tfplan \
+            -var="environment=dev" \
+            -var="project_name=dmercato" \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="stripe_secret_key=${{ secrets.STRIPE_SECRET_KEY }}" \
+            -var="stripe_webhook_secret=${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+            -var="stripe_publishable_key=${{ secrets.STRIPE_PUBLISHABLE_KEY }}"
+
+      - name: Terraform apply
+        working-directory: infra/environments/dev
+        run: terraform apply tfplan
+
+      - name: Deploy renderer Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-renderer-dev \
+            --zip-file fileb://dist/renderer.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
+
+      - name: Deploy API Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-api-dev \
+            --zip-file fileb://dist/api.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
+
+      - name: Deploy Stripe webhook Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name dmercato-stripe-webhook-dev \
+            --zip-file fileb://dist/stripe-webhook.zip \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
