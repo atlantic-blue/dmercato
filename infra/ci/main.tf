@@ -297,6 +297,27 @@ data "aws_iam_policy_document" "deploy" {
     resources = ["*"]
   }
 
+  # Log delivery, which API Gateway needs to enable access logging on a stage.
+  #
+  # These actions are account scoped rather than log group scoped: the delivery resources the
+  # service creates have no ARN we can predict, so AWS requires a wildcard here. Without them
+  # CreateStage fails with "Insufficient permissions to enable logging", which reads as an API
+  # Gateway problem rather than an IAM one.
+  statement {
+    sid    = "CloudWatchLogDelivery"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogDelivery",
+      "logs:GetLogDelivery",
+      "logs:UpdateLogDelivery",
+      "logs:DeleteLogDelivery",
+      "logs:ListLogDeliveries",
+      "logs:PutResourcePolicy",
+      "logs:DescribeResourcePolicies",
+    ]
+    resources = ["*"]
+  }
+
   # CloudWatch Logs (Lambda + API Gateway log groups)
   statement {
     sid    = "CloudWatchLogs"

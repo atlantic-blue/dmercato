@@ -150,13 +150,11 @@ module "dns" {
 }
 
 # -----------------------------------------------------------------------------
-# SES (email sending from dmercato.com)
+# SES is deliberately absent here.
+#
+# Domain verification is account wide, not per environment: the `_amazonses` TXT record and
+# the DomainKeys CNAMEs live on the apex of dmercato.com and can only be owned once. Prod
+# already owns them, so dev sends from the same verified identity without declaring it. An
+# earlier attempt to copy the module into this environment failed the apply outright, because
+# Route 53 refuses to create a record set that already exists.
 # -----------------------------------------------------------------------------
-module "ses" {
-  source = "../../modules/ses"
-
-  domain_name = "dmercato.com"
-  zone_domain = "dmercato.com"
-
-  tags = local.common_tags
-}
